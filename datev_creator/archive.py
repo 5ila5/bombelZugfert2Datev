@@ -2,10 +2,28 @@ from dataclasses import dataclass
 import enum
 from typing import Literal, TypeAlias
 from lxml import etree
-
+from abc import ABC, abstractmethod
 
 DatafileOrName: TypeAlias = Literal["datafile", "name"]
 oneToThree: TypeAlias = Literal["1", "2", "3"]
+
+
+class XmlBuilder(ABC):
+    """Abstract base class for XML builders."""
+
+    @property
+    @abstractmethod
+    def xml(self) -> etree._Element:
+        """Return the XML representation of the object."""
+        pass
+
+
+@dataclass
+class XmlAttribute(ABC):
+    """Abstract base class for XML builders."""
+
+    key: str
+    value: str
 
 
 class XSI_Type(enum.Enum):
@@ -33,7 +51,7 @@ class ArchiveDocumentExtensionPropertyKey(enum.Enum):
 
 
 @dataclass
-class ArchiveDocumentExtensionProperty:
+class ArchiveDocumentExtensionProperty(XmlAttribute):
     """Die Propertys enthalten zusätzliche Metainformationen in Abhängigkeit vom xsi:type.
 
     | Bezeichnung | Typ      | Beschreibung                                         | Kardinalität |
@@ -58,7 +76,7 @@ class ArchiveDocumentExtensionProperty:
 
 
 @dataclass
-class ArchiveDocumentRepository:
+class ArchiveDocumentRepository(XmlBuilder):
     """Dieses Element definiert ein 3-stufiges Ablageverzeichnis und wird für Dateien vom Typ "File"/"SEPAFile" angewendet. Wird das Repository nicht explizit angegeben, dann werden die Dateien automatisch gemäß einer Default-Ablagestruktur abgelegt. Wird das Repository angegeben, werden die entsprechenden Verzeichnisse - sofern nicht schon vorhanden - zur Laufzeit in Belege online erzeugt.
 
     | Bezeichnung | Typ      | Beschreibung                                         | Kardinalität |
@@ -84,9 +102,24 @@ class ArchiveDocumentRepository:
     id: tuple[oneToThree, oneToThree, oneToThree]  # 3..3
     name: tuple[str, str, str]  # 3..3
 
+    @property
+    def xml(self) -> etree._Element:
+        repository = etree.Element("repository")
+        for i in range(3):
+            etree.SubElement(
+                repository,
+                "level",
+                attrib={
+                    "id": self.id[i],
+                    "name": self.name[i],
+                },
+                nsmap=None,
+            )
+        return repository
+
 
 @dataclass
-class ArchiveHeader:
+class ArchiveHeader(XmlBuilder):
     """
     | Bezeichnung       | Typ      | Beschreibung                                         | Kardinalität |
     |-------------------|----------|------------------------------------------------------|--------------|
@@ -105,9 +138,25 @@ class ArchiveHeader:
     clientNumber: str | None = None  # Mandantennummer | Verwendung nicht empfehlenswert
     clientName: str | None = None  # Mandantenname | Verwendung nicht empfehlenswert
 
+    @property
+    def xml(self) -> etree._Element:
+        header: etree._Element = etree.Element("header")
+        etree.SubElement(header, "date").text = self.date
+
+        if self.description is not None:
+            etree.SubElement(header, "description").text = self.description[:255]
+        if self.consultantNumber is not None:
+            etree.SubElement(header, "consultantNumber").text = self.consultantNumber
+        if self.clientNumber is not None:
+            etree.SubElement(header, "clientNumber").text = self.clientNumber
+        if self.clientName is not None:
+            etree.SubElement(header, "clientName").text = self.clientName
+
+        return header
+
 
 @dataclass
-class ArchiveDocumentExtension:
+class ArchiveDocumentExtension(XmlBuilder):
     """
     | Bezeichnung       | Typ      | Beschreibung                                         | Kardinalität |
     |-------------------|----------|------------------------------------------------------|--------------|
@@ -133,16 +182,44 @@ class ArchiveDocumentExtension:
     def datafile_or_name(self) -> DatafileOrName:
         return self.xsi_type.attribute
 
-    property: (
+    property_: (
         None
         | ArchiveDocumentExtensionProperty
         | tuple[ArchiveDocumentExtensionProperty]
         | tuple[ArchiveDocumentExtensionProperty, ArchiveDocumentExtensionProperty]
     ) = None  # 0..2
 
+    @property
+    def xml(self) -> etree._Element:
+        attributes: dict[str, str] = {
+            "xsi:type": self.xsi_type.value,
+            self.xsi_type.attribute: self.datafile_or_name,
+        }
+
+        extension: etree._Element = etree.Element(
+            "extension",
+            attrib=attributes,
+            nsmap=None,
+        )
+
+        props: list[ArchiveDocumentExtensionProperty] = []
+        if isinstance(self.property_, ArchiveDocumentExtensionProperty):
+            props = [self.property_]
+        elif isinstance(self.property_, tuple):
+            props = list(self.property_)
+
+        for prop in props:
+            etree.SubElement(
+                extension,
+                "property",
+                attrib={"value": prop.value, "key": prop.key.value},
+            )
+
+        return extension
+
 
 @dataclass
-class ArchiveDocument:
+class ArchiveDocument(XmlBuilder):
     """
     | Bezeichnung       | Typ      | Beschreibung                                         | Kardinalität |
     |-------------------|----------|------------------------------------------------------|--------------|
@@ -163,18 +240,54 @@ class ArchiveDocument:
     description: str | None = None
     keywords: str | None = None
 
+    @property
+    def xml(self) -> etree._Element:
+        attributes: dict[str, str] = {}
+
+        if self.guid is not None:
+            attributes["guid"] = self.guid
+        if self.type is not None:
+            attributes["type"] = self.type
+        if self.processID is not None:
+            attributes["processID"] = self.processID
+        if self.description is not None:
+            attributes["description"] = self.description
+        if self.keywords is not None:
+            attributes["keywords"] = self.keywords
+
+        document: etree._Element = etree.Element(
+            "document",
+            attrib=attributes,
+            nsmap=None,
+        )
+        for ext in self.extension:
+            document.append(ext.xml)
+
+        if self.repository is not None:
+            document.append(self.repository.xml)
+
+        return document
+
 
 @dataclass
-class ArchiveContent:
+class ArchiveContent(XmlBuilder):
     """| Bezeichnung       | Typ      | Beschreibung                                         | Kardinalität |
     |-------------------|----------|------------------------------------------------------|--------------|
     |document| 	Element| 	Die Entität für ein Dokument (z.B. eine Rechnung).| 	1...5000|"""
 
     document: list[ArchiveDocument]
 
+    @property
+    def xml(self) -> etree._Element:
+        xml: etree._Element = etree.Element("content")
+        for doc in self.document:
+            xml.append(doc.xml)
+
+        return xml
+
 
 @dataclass
-class Archive:
+class Archive(XmlBuilder):
     header: ArchiveHeader
     content: ArchiveContent
     xmlns: str = "http://xml.datev.de/bedi/tps/document/v06.0"
@@ -187,114 +300,21 @@ class Archive:
     version: str = "6.0"
     generatingSystem: str | None = None
 
-
-def build_archive_header_xml(header: ArchiveHeader) -> etree._Element:
-    xml: etree._Element = etree.Element("header", None, None)
-    etree.SubElement(xml, "date", None, None).text = header.date
-
-    if header.description is not None:
-        etree.SubElement(xml, "description", None, None).text = header.description[:255]
-    if header.consultantNumber is not None:
-        etree.SubElement(
-            xml, "consultantNumber", None, None
-        ).text = header.consultantNumber
-    if header.clientNumber is not None:
-        etree.SubElement(xml, "clientNumber", None, None).text = header.clientNumber
-    if header.clientName is not None:
-        etree.SubElement(xml, "clientName", None, None).text = header.clientName
-
-    return xml
-
-
-def build_archive_content_document_extension_xml(extension: ArchiveDocumentExtension):
-    attributes: dict[str, str] = {
-        "xsi:type": extension.xsi_type.value,
-        extension.xsi_type.attribute: extension.datafile_or_name,
-    }
-
-    xml: etree._Element = etree.Element(
-        "document",
-        attrib=attributes,
-        nsmap=None,
-    )
-
-    props: list[ArchiveDocumentExtensionProperty] = []
-    if isinstance(extension.property, ArchiveDocumentExtensionProperty):
-        props = [extension.property]
-    elif isinstance(extension.property, tuple):
-        props = list(extension.property)
-
-    for prop in props:
-        etree.SubElement(
-            xml,
-            "property",
-            attrib={"value": prop.value, "key": prop.key.value},
-            nsmap=None,
+    @property
+    def xml(self) -> etree._Element:
+        xml: etree._Element = etree.Element(
+            "archive",
+            attrib={
+                "{http://www.w3.org/2001/XMLSchema-instance}schemaLocation": "http://xml.datev.de/bedi/tps/document/v06.0 Document_v060.xsd",
+                "version": "6.0",
+            },
+            nsmap={
+                None: "http://xml.datev.de/bedi/tps/document/v06.0",  # Default namespace
+                "xsi": "http://www.w3.org/2001/XMLSchema-instance",
+            },
         )
-
-    return xml
-
-
-def build_archive_content_document_xml(document: ArchiveDocument) -> etree._Element:
-    attributes: dict[str, str] = {}
-
-    if document.guid is not None:
-        attributes["guid"] = document.guid
-    if document.type is not None:
-        attributes["type"] = document.type
-    if document.processID is not None:
-        attributes["processID"] = document.processID
-    if document.description is not None:
-        attributes["description"] = document.description
-    if document.keywords is not None:
-        attributes["keywords"] = document.keywords
-
-    xml: etree._Element = etree.Element(
-        "document",
-        attrib=attributes,
-        nsmap=None,
-    )
-    for ext in document.extension:
-        xml.append(build_archive_content_document_extension_xml(ext))
-
-    if document.repository is not None:
-        repository_xml = etree.SubElement(xml, "repository", None, None)
-        for i in range(3):
-            etree.SubElement(
-                repository_xml,
-                "level",
-                attrib={
-                    "id": document.repository.id[i],
-                    "name": document.repository.name[i],
-                },
-                nsmap=None,
-            )
-
-    return xml
-
-
-def build_archive_content_xml(content: ArchiveContent) -> etree._Element:
-    xml: etree._Element = etree.Element("content", attrib=None, nsmap=None)
-    for doc in content.document:
-        xml.append(build_archive_content_document_xml(doc))
-
-    return xml
-
-
-def build_archive_xml(archive: Archive) -> etree._Element:
-    xml: etree._Element = etree.Element(
-        "archive",
-        attrib={
-            "{http://www.w3.org/2001/XMLSchema-instance}schemaLocation": "http://xml.datev.de/bedi/tps/document/v06.0 Document_v060.xsd",
-            "version": "6.0",
-        },
-        nsmap={
-            None: "http://xml.datev.de/bedi/tps/document/v06.0",  # Default namespace
-            "xsi": "http://www.w3.org/2001/XMLSchema-instance",
-        },
-    )
-    # Set the xsi:schemaLocation attribute (must use full QName)
-    xml.append(build_archive_header_xml(archive.header))
-    xml.append(build_archive_content_xml(archive.content))
-    # Set version attribute
-    return xml
+        # Set the xsi:schemaLocation attribute (must use full QName)
+        xml.append(self.header.xml)
+        xml.append(self.content.xml)
+        # Set version attribute
+        return xml

@@ -8,7 +8,8 @@ from datev_creator.archive import (
     ArchiveDocumentRepository,
     ArchiveHeader,
     XSI_Type,
-    build_archive_xml,
+    XmlBuilder,
+    XmlAttribute,
 )
 
 
@@ -23,5 +24,6 @@ __all__ = (
     "ArchiveDocument",
     "ArchiveContent",
     "Archive",
-    "build_archive_xml",
+    "XmlBuilder",
+    "XmlAttribute",
 )
