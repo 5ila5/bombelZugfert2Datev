@@ -2,28 +2,11 @@ from dataclasses import dataclass
 import enum
 from typing import Literal, TypeAlias
 from lxml import etree
-from abc import ABC, abstractmethod
+
+from datev_creator.base_builder import XmlAttribute, XmlBuilder
 
 DatafileOrName: TypeAlias = Literal["datafile", "name"]
 oneToThree: TypeAlias = Literal["1", "2", "3"]
-
-
-class XmlBuilder(ABC):
-    """Abstract base class for XML builders."""
-
-    @property
-    @abstractmethod
-    def xml(self) -> etree._Element:
-        """Return the XML representation of the object."""
-        pass
-
-
-@dataclass
-class XmlAttribute(ABC):
-    """Abstract base class for XML builders."""
-
-    key: str
-    value: str
 
 
 class XSI_Type(enum.Enum):
@@ -37,9 +20,9 @@ class XSI_Type(enum.Enum):
     @property
     def attribute(self) -> DatafileOrName:
         if self in (XSI_Type.File, XSI_Type.SEPAFile):
-            return "datafile"
-        else:
             return "name"
+        else:
+            return "datafile"
 
 
 class ArchiveDocumentExtensionPropertyKey(enum.Enum):
@@ -178,9 +161,7 @@ class ArchiveDocumentExtension(XmlBuilder):
 
     xsi_type: XSI_Type
 
-    @property
-    def datafile_or_name(self) -> DatafileOrName:
-        return self.xsi_type.attribute
+    filename: str
 
     property_: (
         None
@@ -192,8 +173,8 @@ class ArchiveDocumentExtension(XmlBuilder):
     @property
     def xml(self) -> etree._Element:
         attributes: dict[str, str] = {
-            "xsi:type": self.xsi_type.value,
-            self.xsi_type.attribute: self.datafile_or_name,
+            "{http://www.w3.org/2001/XMLSchema-instance}type": self.xsi_type.value,
+            self.xsi_type.attribute: self.filename,
         }
 
         extension: etree._Element = etree.Element(
@@ -301,7 +282,7 @@ class Archive(XmlBuilder):
     generatingSystem: str | None = None
 
     @property
-    def xml(self) -> etree._Element:
+    def xml(self) -> etree._ElementTree:
         xml: etree._Element = etree.Element(
             "archive",
             attrib={
@@ -313,8 +294,7 @@ class Archive(XmlBuilder):
                 "xsi": "http://www.w3.org/2001/XMLSchema-instance",
             },
         )
-        # Set the xsi:schemaLocation attribute (must use full QName)
         xml.append(self.header.xml)
         xml.append(self.content.xml)
         # Set version attribute
-        return xml
+        return etree.ElementTree(xml)
