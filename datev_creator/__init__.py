@@ -7,15 +7,12 @@ from datev_creator.archive import (
     ArchiveDocumentExtensionPropertyKey,
     ArchiveDocumentRepository,
     ArchiveHeader,
-    XSI_Type,
-    XmlBuilder,
-    XmlAttribute,
+    XsiType,
 )
-
 
 # export
 __all__ = (
-    "XSI_Type",
+    "XsiType",
     "ArchiveDocumentExtensionPropertyKey",
     "ArchiveDocumentExtensionProperty",
     "ArchiveDocumentRepository",

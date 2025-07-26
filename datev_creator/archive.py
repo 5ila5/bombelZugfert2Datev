@@ -1,31 +1,32 @@
-from dataclasses import dataclass
 import enum
+from dataclasses import dataclass
 from typing import Literal, TypeAlias
-from lxml import etree
 
-from datev_creator.base_builder import XmlAttribute, XmlBuilder
+from lxml import etree  # nosec B410
+
+from datev_creator.utils import XmlAttribute, XmlBuilder
 
 DatafileOrName: TypeAlias = Literal["datafile", "name"]
-oneToThree: TypeAlias = Literal["1", "2", "3"]
+OneToThree: TypeAlias = Literal["1", "2", "3"]
 
 
-class XSI_Type(enum.Enum):
-    accountsPayableLedger = "accountsPayableLedger"
-    accountsReceivableLedger = "accountsReceivableLedger"
-    cashLedger = "cashLedger"
-    File = "File"
-    Invoice = "Invoice"
-    SEPAFile = "SEPAFile"
+class XsiType(enum.Enum):
+    ACCOUNTS_PAYABLE_LEDGER = "accountsPayableLedger"
+    ACCOUNTS_RECEIVABLE_LEDGER = "accountsReceivableLedger"
+    CASH_LEDGER = "cashLedger"
+    FILE = "File"
+    INVOICE = "Invoice"
+    SEPA_FILE = "SEPAFile"
 
     @property
     def attribute(self) -> DatafileOrName:
-        if self in (XSI_Type.File, XSI_Type.SEPAFile):
+        if self in (XsiType.FILE, XsiType.SEPA_FILE):
             return "name"
         else:
             return "datafile"
 
 
-class ArchiveDocumentExtensionPropertyKey(enum.Enum):
+class ArchiveDocumentExtensionPropertyKey(enum.StrEnum):
     INVOICE_MONTH_FORMAT = "1"  # Rechnungsmonat Format "JJJJ-MM" z.B. "2020-02"
     CACHE_REGISTER_ACCOUNT_NUMBER = (
         "2"  #  Cache Legdger ONLY Kassenkontonummer z. B. „1000“1
@@ -82,7 +83,7 @@ class ArchiveDocumentRepository(XmlBuilder):
     |invoice |Buchführung |IMPORT JJJJ |MM Monatsname|
     """
 
-    id: tuple[oneToThree, oneToThree, oneToThree]  # 3..3
+    id: tuple[OneToThree, OneToThree, OneToThree]  # 3..3
     name: tuple[str, str, str]  # 3..3
 
     @property
@@ -103,7 +104,8 @@ class ArchiveDocumentRepository(XmlBuilder):
 
 @dataclass
 class ArchiveHeader(XmlBuilder):
-    """
+    """Archive Header Information.
+
     | Bezeichnung       | Typ      | Beschreibung                                         | Kardinalität |
     |-------------------|----------|------------------------------------------------------|--------------|
     | date              | Element  | Erstellungsdatum der Datei                            | 1...1        |
@@ -115,11 +117,13 @@ class ArchiveHeader(XmlBuilder):
 
     date: str
     description: str | None = None  # 255 chars
-    consultantNumber: str | None = (
+    consultant_number: str | None = (
         None  # Beraternummer | Verwendung nicht empfehlenswert
     )
-    clientNumber: str | None = None  # Mandantennummer | Verwendung nicht empfehlenswert
-    clientName: str | None = None  # Mandantenname | Verwendung nicht empfehlenswert
+    client_number: str | None = (
+        None  # Mandantennummer | Verwendung nicht empfehlenswert
+    )
+    client_name: str | None = None  # Mandantenname | Verwendung nicht empfehlenswert
 
     @property
     def xml(self) -> etree._Element:
@@ -128,19 +132,20 @@ class ArchiveHeader(XmlBuilder):
 
         if self.description is not None:
             etree.SubElement(header, "description").text = self.description[:255]
-        if self.consultantNumber is not None:
-            etree.SubElement(header, "consultantNumber").text = self.consultantNumber
-        if self.clientNumber is not None:
-            etree.SubElement(header, "clientNumber").text = self.clientNumber
-        if self.clientName is not None:
-            etree.SubElement(header, "clientName").text = self.clientName
+        if self.consultant_number is not None:
+            etree.SubElement(header, "consultantNumber").text = self.consultant_number
+        if self.client_number is not None:
+            etree.SubElement(header, "clientNumber").text = self.client_number
+        if self.client_name is not None:
+            etree.SubElement(header, "clientName").text = self.client_name
 
         return header
 
 
 @dataclass
 class ArchiveDocumentExtension(XmlBuilder):
-    """
+    """Archive Document Extension.
+
     | Bezeichnung       | Typ      | Beschreibung                                         | Kardinalität |
     |-------------------|----------|------------------------------------------------------|--------------|
     | xsi:type          | Attribut | Definiert den Dateityp                                | 1...1        |
@@ -159,7 +164,7 @@ class ArchiveDocumentExtension(XmlBuilder):
     | SEPAFile                    | SEPA/DTAUS-Dateien                                  | name     |
     """
 
-    xsi_type: XSI_Type
+    xsi_type: XsiType
 
     filename: str
 
@@ -201,7 +206,8 @@ class ArchiveDocumentExtension(XmlBuilder):
 
 @dataclass
 class ArchiveDocument(XmlBuilder):
-    """
+    """Archive Document.
+
     | Bezeichnung       | Typ      | Beschreibung                                         | Kardinalität |
     |-------------------|----------|------------------------------------------------------|--------------|
     | extension         | Element  | Definiert den Typ der Datei                           | 1...50 |
@@ -217,7 +223,7 @@ class ArchiveDocument(XmlBuilder):
     repository: ArchiveDocumentRepository | None = None
     guid: str | None = None
     type: str | None = None
-    processID: str | None = None
+    process_id: str | None = None
     description: str | None = None
     keywords: str | None = None
 
@@ -229,8 +235,8 @@ class ArchiveDocument(XmlBuilder):
             attributes["guid"] = self.guid
         if self.type is not None:
             attributes["type"] = self.type
-        if self.processID is not None:
-            attributes["processID"] = self.processID
+        if self.process_id is not None:
+            attributes["processID"] = self.process_id
         if self.description is not None:
             attributes["description"] = self.description
         if self.keywords is not None:
@@ -252,9 +258,12 @@ class ArchiveDocument(XmlBuilder):
 
 @dataclass
 class ArchiveContent(XmlBuilder):
-    """| Bezeichnung       | Typ      | Beschreibung                                         | Kardinalität |
+    """Archive content holding the documents.
+
+    | Bezeichnung       | Typ      | Beschreibung                                         | Kardinalität |
     |-------------------|----------|------------------------------------------------------|--------------|
-    |document| 	Element| 	Die Entität für ein Dokument (z.B. eine Rechnung).| 	1...5000|"""
+    |document| 	Element| 	Die Entität für ein Dokument (z.B. eine Rechnung).| 	1...5000|
+    """
 
     document: list[ArchiveDocument]
 
@@ -269,17 +278,19 @@ class ArchiveContent(XmlBuilder):
 
 @dataclass
 class Archive(XmlBuilder):
+    """Archive."""
+
     header: ArchiveHeader
     content: ArchiveContent
     xmlns: str = "http://xml.datev.de/bedi/tps/document/v06.0"
     xmlns_xsi: Literal["http://www.w3.org/2001/XMLSchema-instance"] = (
         "http://www.w3.org/2001/XMLSchema-instance"
     )
-    xsi_schemaLocation: str = (
+    xsi_schema_location: str = (
         "http://xml.datev.de/bedi/tps/document/v06.0 Document_v060.xsd"
     )
     version: str = "6.0"
-    generatingSystem: str | None = None
+    generating_system: str | None = None
 
     @property
     def xml(self) -> etree._ElementTree:
