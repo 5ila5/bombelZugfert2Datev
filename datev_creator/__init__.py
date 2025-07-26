@@ -19,6 +19,7 @@ from datev_creator.ledger_import import (
     LedgerImport,
 )
 from datev_creator.utils import SOFTWARE_NAME, XmlAttribute, XmlBuilder
+from datev_creator.zugfert2ledger_import import zugfert_to_ledger_import
 
 # export
 __all__ = (
@@ -41,4 +42,5 @@ __all__ = (
     "Consolidate",
     "LedgerImport",
     "SOFTWARE_NAME",
+    "zugfert_to_ledger_import",
 )

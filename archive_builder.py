@@ -1,14 +1,18 @@
+import sys
+import tempfile
 from dataclasses import dataclass
+from datetime import datetime
 from pathlib import Path
 from tkinter import Tk
 from tkinter.filedialog import (
-    askopenfilenames,
     askdirectory,
+    askopenfilenames,
     asksaveasfilename,
 )
-import tempfile
-from datetime import datetime
+from typing import Literal
+
 from datev_creator import (
+    SOFTWARE_NAME,
     Archive,
     ArchiveContent,
     ArchiveDocument,
@@ -16,13 +20,11 @@ from datev_creator import (
     ArchiveDocumentExtensionProperty,
     ArchiveDocumentExtensionPropertyKey,
     ArchiveHeader,
-    XSI_Type,
-    SOFTWARE_NAME,
+    XsiType,
     zugfert_to_ledger_import,
 )
-
-import zipfile
-import sys
+from datev_creator.ledger_import import LedgerImport
+from datev_creator.zip_builder import build_zip
 
 
 @dataclass
@@ -49,7 +51,7 @@ def main() -> None:
 
     Tk().withdraw()  # Hide the root window
     if debug:
-        pdf_paths = ["testing/factur-x_rg.pdf"]
+        pdf_paths: tuple[str, ...] | Literal[""] = ("testing/factur-x_rg.pdf",)
     else:
         pdf_paths = askopenfilenames(
             title="Select PDF files",
@@ -73,7 +75,9 @@ def main() -> None:
         )
 
     zugfert_xml_files: list[Path] = []
-    datev_xml_files: list[tuple[Path, tuple[int, int]]] = []  # Path, year, month
+    ledger_imports: list[
+        tuple[tuple[str, LedgerImport], tuple[int, int]]
+    ] = []  # file_name, LedgerImport, year, month
     error = False
 
     for pdf in pdf_paths:
@@ -98,32 +102,26 @@ def main() -> None:
 
     for xml_file in zugfert_xml_files:
         zugfert_xml, (year, month) = zugfert_to_ledger_import(xml_file)
-
-        # Write the converted XML to a temporary file
-        datev_xml_files.append((temp_dir / xml_file.name, (year, month)))
-        zugfert_xml.write(
-            temp_dir / xml_file.name,
-            pretty_print=True,
-            xml_declaration=True,
-            encoding="utf-8",
-        )
+        ledger_imports.append(((xml_file.name, zugfert_xml), (year, month)))
 
     documents: list[ArchiveDocument] = []
 
-    for (xml_file, (year, month)), pdf_file in zip(datev_xml_files, temp_pdf_paths):
+    for ((ledger_file_name, _), (year, month)), pdf_file in zip(
+        ledger_imports, temp_pdf_paths
+    ):
         documents.append(
             ArchiveDocument(
                 extension=[
                     ArchiveDocumentExtension(
-                        xsi_type=XSI_Type.accountsReceivableLedger,
+                        xsi_type=XsiType.ACCOUNTS_RECEIVABLE_LEDGER,
                         property_=ArchiveDocumentExtensionProperty(
                             ArchiveDocumentExtensionPropertyKey.INVOICE_MONTH_FORMAT,
                             f"{year:04d}-{month:02d}",
                         ),
-                        filename=xml_file.name,
+                        filename=ledger_file_name,
                     ),
                     ArchiveDocumentExtension(
-                        xsi_type=XSI_Type.File,
+                        xsi_type=XsiType.FILE,
                         property_=None,
                         filename=pdf_file.name,
                     ),
@@ -131,7 +129,7 @@ def main() -> None:
                 repository=None,
                 guid=None,
                 type=None,
-                processID=None,
+                process_id=None,
                 description=None,
                 keywords=None,
             )
@@ -141,17 +139,12 @@ def main() -> None:
         header=ArchiveHeader(
             date=datetime.now().strftime("%Y-%m-%dT%H:%M:%S"),
             description=None,
-            consultantNumber=None,
-            clientNumber=None,
-            clientName=None,
+            consultant_number=None,
+            client_number=None,
+            client_name=None,
         ),
         content=ArchiveContent(documents),
-        generatingSystem=SOFTWARE_NAME,
-    )
-
-    archive_xml_path = temp_dir / "document.xml"
-    archive_xml.xml.write(
-        archive_xml_path, pretty_print=True, xml_declaration=True, encoding="utf-8"
+        generating_system=SOFTWARE_NAME,
     )
 
     # ask zip save location
@@ -170,18 +163,12 @@ def main() -> None:
         print("No ZIP file selected.")
         return
 
-    zip_content_paths: list[Path] = [
-        archive_xml_path,
-        *[a[0] for a in datev_xml_files],
-        *temp_pdf_paths,
-    ]
-
-    # zip temp directory
-
-    print(f"Creating ZIP file at {zip_path} for {zip_content_paths}")
-    with zipfile.ZipFile(zip_path, "w") as zipf:
-        for file in zip_content_paths:
-            zipf.write(file, file.name)
+    build_zip(
+        archive=archive_xml,
+        documents=[item[0] for item in ledger_imports],
+        out_path=zip_path,
+        other_files=temp_pdf_paths,
+    )
 
 
 if __name__ == "__main__":
