@@ -18,6 +18,7 @@ from datev_creator.ledger_import import (
     Consolidate,
     LedgerImport,
 )
+from datev_creator.utils import SOFTWARE_NAME, XmlAttribute, XmlBuilder
 
 # export
 __all__ = (
@@ -39,4 +40,5 @@ __all__ = (
     "CashLedger",
     "Consolidate",
     "LedgerImport",
+    "SOFTWARE_NAME",
 )
