@@ -1,0 +1,35 @@
+---
+repos:
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    # Ruff version.
+    rev: v0.7.3
+    hooks:
+      # Run the linter.
+      - id: ruff-format
+      - id: ruff
+        args: [
+            --fix,
+            "--select",
+            "A,B,D,E,F,I,N,Q,R,S,U,W", # Select a broad set of checks
+            "--ignore",
+            "D100,D101,D102,D103,D104,D105,D106,D107,D404,D401,E501,S101,RET,N806,B006,B011", # Ignore missing docstrings.
+          ]
+      # Run the formatter.
+  - repo: https://github.com/PyCQA/bandit
+    rev: 1.7.5
+    hooks:
+      - id: bandit
+        args: ["--quiet"]
+        additional_dependencies: ["bandit[toml]"]
+  - repo: https://github.com/pre-commit/mirrors-mypy
+    rev: v1.10.1
+    hooks:
+      - id: mypy
+        additional_dependencies:
+          [types-requests, types-python-dateutil, types-pyyaml]
+        args:
+          - --pretty
+          - --show-error-codes
+          - --show-error-context
+          - --ignore-missing-imports
+          - --explicit-package-bases
