@@ -1,4 +1,5 @@
 from pathlib import Path
+from typing import Callable
 
 from drafthorse.models.document import Document
 from drafthorse.models.party import TaxRegistration
@@ -27,7 +28,23 @@ def import_zugfert(xml_path: Path) -> Document:
     return Document.parse(xml)
 
 
-def retrieve_ledgers(document: Document) -> list[AccountsReceivableLedger]:
+def retrieve_ledgers(
+    document: Document,
+    account_no_retrieval: Callable[[str | None, str], str | None],
+) -> list[AccountsReceivableLedger]:
+    """Retrieve ledgers from FractureX xml document.
+
+    Args:
+        document (Document): The drafthorse Document object.
+        account_no_retrieval (Callable[[str | None, str], str | None]): function retrieveing account_no given a [customer_number] and invoice ID.
+
+    Raises:
+        ValueError: when tax rate is not 0% or 19%
+
+    Returns:
+        list[AccountsReceivableLedger]: The list of ledgers.
+
+    """
     ledgers: list[AccountsReceivableLedger] = []
     item: LineItem
     settlement: LineSettlement
@@ -58,7 +75,8 @@ def retrieve_ledgers(document: Document) -> list[AccountsReceivableLedger]:
             item_amount = str(item.agreement.net.amount)
 
         # Get tax rate from settlement.trade_tax
-        tax_rate = None
+        tax_rate: str | None = None
+        tax_rate_float: float | None = None
         if (
             hasattr(item, "settlement")
             and item.settlement
@@ -148,6 +166,25 @@ def retrieve_ledgers(document: Document) -> list[AccountsReceivableLedger]:
             print(document.trade.agreement.buyer_order.issuer_assigned_id)
             order_id = str(document.trade.agreement.buyer_order.issuer_assigned_id)
 
+        # BU CODE only works for our use case where only two BU Codes are used (19% or 0%) (where 0% is 200)
+        bu_code: str
+        if tax_rate_float == 19.0:
+            bu_code = "3"
+        elif tax_rate_float == 0.0:
+            bu_code = "200"
+        else:
+            raise ValueError(f"Unexpected tax rate: {tax_rate_float}")
+
+        buyer_id = (
+            str(document.trade.agreement.buyer.id)
+            if hasattr(document.trade.agreement.buyer, "id")
+            else None
+        )
+        if document.header.id:
+            invoice_id = str(document.header.id)
+        else:
+            raise ValueError("Invoice needs to have an ID, but it does not.")
+
         ledgers.append(
             AccountsReceivableLedger(
                 base1=Base1(
@@ -157,8 +194,8 @@ def retrieve_ledgers(document: Document) -> list[AccountsReceivableLedger]:
                         else "",
                         amount=item_amount,
                         discount_amount=None,
-                        account_no=None,
-                        bu_code=None,
+                        account_no=account_no_retrieval(buyer_id, invoice_id),
+                        bu_code=bu_code,
                         cost_amount=None,
                         cost_category_id=None,
                         cost_category_id2=None,
@@ -170,16 +207,14 @@ def retrieve_ledgers(document: Document) -> list[AccountsReceivableLedger]:
                     currency_code=str(document.trade.settlement.currency_code)
                     if document.trade.settlement.currency_code
                     else "EUR",
-                    invoice_id=str(document.header.id) if document.header.id else "",
+                    invoice_id=invoice_id,
                     booking_text=str(item.product.name)[:30]
                     if item.product and item.product.name
                     else None,
                     type_of_receivable=None,
                     own_vat_id=seller_tax_id,
                     ship_from_country=ship_from_country,
-                    party_id=str(document.trade.agreement.buyer.id)
-                    if hasattr(document.trade.agreement.buyer, "id")
-                    else None,
+                    party_id=buyer_id,
                     paid_at=None,
                     internal_invoice_id=None,
                     vat_id=buyer_tax_id,
@@ -215,15 +250,21 @@ def retrieve_ledgers(document: Document) -> list[AccountsReceivableLedger]:
 
 def zugfert_to_ledger_import(
     xml_path: Path,
+    account_no_retrieval: Callable[
+        [str | None, str], str | None
+    ] = lambda customer_number, invoice_id: None,
 ) -> tuple[LedgerImport, tuple[int, int]]:
     """Convert a Zugferd XML file to a LedgerImport XML string.
+
+    xml_path (Path): Path to the Zugferd XML file.
+    account_no_retrieval (Callable[[str | None, str], str | None]): function retrieveing account_no given a [customer_number] and invoice ID.
 
     Returns:
         tuple: (etree._ElementTree, year, month)
 
     """
     document = import_zugfert(xml_path)
-    ledgers = retrieve_ledgers(document)
+    ledgers = retrieve_ledgers(document, account_no_retrieval)
 
     print(
         f"{document.trade.settlement.monetary_summation.grand_total=}, {type(document.trade.settlement.monetary_summation.grand_total)=}"

@@ -3,7 +3,7 @@ import tempfile
 from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
-from tkinter import Tk
+from tkinter import Tk, messagebox
 from tkinter.filedialog import (
     askdirectory,
     askopenfilenames,
@@ -27,6 +27,32 @@ from datev_creator.ledger_import import LedgerImport
 from datev_creator.zip_builder import build_zip
 
 
+def validate_database_information_exists():
+    # check if this script directory has a subdirectory called database
+    script_dir = Path(__file__).parent
+    database_dir = script_dir / "database"
+    if not database_dir.exists():
+        # create database directory
+        database_dir.mkdir()
+
+    # check if credentials.py exists in database directory
+    credentials_file = database_dir / "credentials.py"
+    if not credentials_file.exists():
+        with open(credentials_file, "w", encoding="utf-8") as f:
+            f.write("""import mysql.connector
+
+mydb = mysql.connector.connect(
+    host="", user="", password="", database=""
+)""")
+
+
+try:
+    from database.credentials import mydb
+except ImportError:
+    validate_database_information_exists()
+    raise
+
+
 @dataclass
 class ZipContents:
     """Class to hold the contents of a ZIP file."""
@@ -40,6 +66,36 @@ class ZipContents:
             raise TypeError("pdf_paths and xml_paths must be lists.")
         if len(self.pdf_paths) != len(self.xml_paths):
             raise ValueError("pdf_paths and xml_paths must have the same length.")
+
+
+def get_datev_account_no(customer_number: str | None, invoice_id: str) -> str | None:
+    if customer_number is not None:
+        SQL = "SELECT DatevKtrNr FROM Kunden WHERE KdNr = %s"
+        mycursor = mydb.cursor()
+        mycursor.execute(SQL, (customer_number,))
+        result = mycursor.fetchone()
+        if (
+            result
+            and isinstance(result, tuple)
+            and (isinstance(result[0], str) or isinstance(result[0], int))
+            and result[0]
+        ):
+            return str(result[0])
+    SQL = """SELECT DatevKtrNr FROM Rechnungen
+    JOIN Kunden ON Rechnungen.Kdidx = Kunden.KdIdx
+    WHERE RgNr = %s"""
+
+    mycursor = mydb.cursor()
+    mycursor.execute(SQL, (invoice_id,))
+    result = mycursor.fetchone()
+    if (
+        result
+        and isinstance(result, tuple)
+        and (isinstance(result[0], str) or isinstance(result[0], int))
+        and result[0]
+    ):
+        return str(result[0])
+    return None
 
 
 def main() -> None:
@@ -101,7 +157,9 @@ def main() -> None:
         temp_pdf_path.write_bytes(Path(pdf).read_bytes())
 
     for xml_file in zugfert_xml_files:
-        zugfert_xml, (year, month) = zugfert_to_ledger_import(xml_file)
+        zugfert_xml, (year, month) = zugfert_to_ledger_import(
+            xml_file, get_datev_account_no
+        )
         ledger_imports.append(((xml_file.name, zugfert_xml), (year, month)))
 
     documents: list[ArchiveDocument] = []
@@ -172,4 +230,9 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    except Exception as e:
+        # tkinter popup with error message
+        messagebox.showerror("Error", str(e))
+        raise e

@@ -204,3 +204,5 @@ __marimo__/
 
 .vscode/
 testing/
+database/
+id_stuff/
