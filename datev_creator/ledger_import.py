@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Iterable, Literal, TypeAlias, Union
+from typing import Literal, Sequence, TypeAlias, Union
 
 from lxml import etree  # nosec B410
 
@@ -359,7 +359,7 @@ class Consolidate(XmlBuilder):
     consolidated_amount: str  # Summe der einzelnen Positionsbeträge
     consolidated_date: str  # Datum der Rechnung/Kassentransaktion
     consolidated_currency_code: str  # 3-stelliges Währungskürzel gem. ISO 4217
-    ledgers: Iterable[
+    ledgers: Sequence[
         Union[AccountsPayableLedger, AccountsReceivableLedger, CashLedger]
     ]  # 1...5000
     consolidated_invoice_id: str | None = None  # ID der Rechnung/Kassentransaktion

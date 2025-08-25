@@ -1,0 +1,318 @@
+import tempfile
+from pathlib import Path
+from tkinter import END, Button, Tk, messagebox
+from tkinter.filedialog import askdirectory, askopenfilename, askopenfilenames
+from tkinter.ttk import Treeview
+from typing import cast
+
+from pypdf import PdfReader
+
+from converter_app.archive_builder import build_archive_and_save
+from converter_app.xml_inspector import XmlInspector
+from datev_creator.ledger_import import AccountsReceivableLedger, LedgerImport
+from datev_creator.zugfert2ledger_import import zugfert_to_ledger_import
+
+from .database_retrieve_account_no import get_datev_account_no
+
+LedgerImportWMetadata = tuple[LedgerImport, tuple[int, int]]
+
+
+class App:
+    def __init__(self):
+        self.pdf_path_list: dict[Path, LedgerImportWMetadata | None] = {}
+        # tkinter GUI to select a file
+        # pdf_path_list = ["a.pdf", "b.pdf"]
+
+        self.main_window = Tk()
+
+        # draw the window
+        self.main_window.title("PDF Selector")
+        self.main_window.geometry("2000x1000")
+
+        self.tree = Treeview(
+            self.main_window, columns=("xml_status", "date", "account_no")
+        )
+        self.tree.column("#0", width=150, minwidth=150)
+        self.tree.column("xml_status", width=100, minwidth=100)
+        self.tree.column("date", width=100, minwidth=100)
+        self.tree.column("account_no", width=10, minwidth=10)
+
+        self.tree.heading("#0", text="File Name", anchor="w")
+        self.tree.heading("xml_status", text="xml", anchor="w")
+        self.tree.heading("date", text="year/month", anchor="w")
+        self.tree.heading("account_no", text="account no", anchor="w")
+
+        self.tree.pack(side="top", fill="both", expand=True)
+
+        # add listbox to show selected files
+
+        # add import button
+        import_button = Button(
+            self.main_window, text="Import pdfs", command=self.import_pdfs
+        )
+
+        import_xml_button = Button(
+            self.main_window, text="import xml folder", command=self.import_xmls
+        )
+
+        import_single_xml_button = Button(
+            self.main_window, text="import single xml", command=self.import_single_xml
+        )
+
+        delete_button = Button(
+            self.main_window,
+            text="Delete selected",
+            command=lambda: [
+                self.pdf_path_list.pop(Path(item), None)
+                for item in self.tree.selection()
+            ]
+            and self.update_treeview(),
+        )
+
+        button_inspect = Button(
+            self.main_window, text="Inspect selected", command=self.inspect
+        )
+
+        button_save = Button(
+            self.main_window,
+            text="Save",
+            command=self.save,
+        )
+
+        import_button.pack(side="left", padx=4, pady=4)
+        button_inspect.pack(side="left", padx=4, pady=4)
+        import_xml_button.pack(side="left", padx=4, pady=4)
+        import_single_xml_button.pack(side="left", padx=4, pady=4)
+        delete_button.pack(side="left", padx=4, pady=4)
+        button_save.pack(side="left", padx=4, pady=4)
+
+    def save(self):
+        for pdf, ledger in self.pdf_path_list.items():
+            if ledger is None:
+                messagebox.showwarning(
+                    "Missing XML data",
+                    f"The PDF {pdf.name} has no imported XML data. Please import XML data for all PDFs before saving.",
+                )
+                return
+
+        pdf_path_list = cast(
+            dict[Path, tuple[LedgerImport, tuple[int, int]]], self.pdf_path_list
+        )
+
+        if len(pdf_path_list) == 0:
+            messagebox.showwarning(
+                "No data",
+                "No PDFs to save. Please import PDFs before saving.",
+            )
+            return
+        build_archive_and_save(pdf_path_list)
+
+    def inspect(self):
+        if len(self.tree.selection()) > 1:
+            messagebox.showwarning(
+                "Multiple selection",
+                "Please select only one PDF to inspect.",
+            )
+            return
+        if len(self.tree.selection()) == 0:
+            messagebox.showwarning(
+                "No selection",
+                "Please select a PDF to inspect.",
+            )
+            return
+
+        selected_pdf = Path(self.tree.selection()[0])
+        selected_data = self.pdf_path_list[selected_pdf]
+
+        if selected_data is None:
+            messagebox.showwarning(
+                "No XML data",
+                "The selected PDF has no imported XML data to inspect.",
+            )
+            return
+
+        inspector = XmlInspector(selected_pdf, selected_data)
+        inspector.run()
+
+    def update_treeview(self, delete: bool = True):
+        if delete:
+            self.tree.delete(*self.tree.get_children())
+        for pdf, ledger in self.pdf_path_list.items():
+            values = ("missing", "", "")
+            if ledger is not None:
+                account_number_attr = "no"
+                curr_ledger = ledger[0].consolidate.ledgers[0]
+                if (
+                    isinstance(curr_ledger, AccountsReceivableLedger)
+                    and curr_ledger.base1.base.account_no
+                ):
+                    account_number_attr = "yes"
+
+                values = (
+                    "Imported",
+                    f"{ledger[1][0]}/{ledger[1][1]}",
+                    account_number_attr,
+                )
+
+            self.tree.insert(
+                "",
+                END,
+                iid=str(pdf),
+                text=str(pdf),
+                values=values,
+            )
+
+    def run(self):
+        self.main_window.mainloop()
+
+    @staticmethod
+    def extract_xml_from_pdf(pdf: Path) -> Path | None:
+        file_name = pdf.name
+        # pdf = Path(file_name)
+        reader = PdfReader(pdf)
+        attachments = {}
+
+        catalog = reader.trailer["/Root"]
+        print(catalog)
+        if "/Names" in catalog and "/EmbeddedFiles" in catalog["/Names"]:
+            fileNames = catalog["/Names"]["/EmbeddedFiles"]["/Names"]
+            for f in fileNames:
+                print(f)
+                if isinstance(f, str) and f == "factur-x.xml":
+                    name = f
+                    dataIndex = fileNames.index(f) + 1
+                    fDict = fileNames[dataIndex].get_object()
+                    fData = fDict["/EF"]["/F"].get_data()
+                    attachments[name] = fData
+
+                    tempdir_path = Path(tempfile.gettempdir()) / (file_name + ".xml")
+                    with open(tempdir_path, "wb") as xml_file:
+                        xml_file.write(fData)
+                    return tempdir_path
+        return None
+
+    @staticmethod
+    def import_x_rechnung(pdf: Path) -> LedgerImportWMetadata | None:
+        print(f"Importing {pdf}")
+        if not pdf.exists() or not pdf.is_file():
+            messagebox.showerror(
+                "File Error", f"The file {pdf} does not exist or is not a file."
+            )
+            return None
+
+        xml_path = App.extract_xml_from_pdf(pdf)
+        print(f"Extracted XML path: {xml_path}")
+        if xml_path is not None and xml_path.exists():
+            return zugfert_to_ledger_import(xml_path, get_datev_account_no)
+
+        return None
+
+    def import_pdfs(self) -> None:
+        pdf_paths = askopenfilenames(
+            title="Select PDF files",
+            filetypes=[("PDF files", "*.pdf")],
+            initialdir=Path(__file__).parent,
+            # initialdir=Path.home(),
+        )
+
+        if len(pdf_paths) == 0:
+            messagebox.showinfo("No files selected", "No PDF files were selected.")
+            return
+        # imported_pdfs: dict[Path, LedgerImportWMetadata | None] = {}
+        for pdf in pdf_paths:
+            pdf_path = Path(pdf)
+            if pdf_path in self.pdf_path_list:
+                messagebox.showwarning(
+                    "Duplicate file",
+                    f"The file {pdf_path.name} has already been imported. Skipping.",
+                )
+                continue
+            # process the PDF file (placeholder for actual processing logic)
+            self.pdf_path_list[pdf_path] = self.import_x_rechnung(pdf_path)
+
+        self.update_treeview()
+
+    def import_single_xml(self) -> None:
+        if len(self.tree.selection()) > 1:
+            messagebox.showwarning(
+                "Multiple selection",
+                "Please select only one PDF to import the XML for.",
+            )
+            return
+        if len(self.tree.selection()) == 0:
+            messagebox.showwarning(
+                "No selection",
+                "Please select a PDF to import the XML for.",
+            )
+            return
+
+        selected_pdf = Path(self.tree.selection()[0])
+
+        xml_file = askopenfilename(
+            title="Select XML file",
+            filetypes=[("XML files", "*.xml")],
+            initialdir=selected_pdf.parent,
+            # initialdir=Path.home(),
+        )
+        if not xml_file:
+            messagebox.showinfo("No file selected", "No XML file was selected.")
+            return
+
+        xml_path = Path(xml_file)
+        if not xml_path.exists() or not xml_path.is_file():
+            messagebox.showerror(
+                "File Error", f"The file {xml_path} does not exist or is not a file."
+            )
+            return
+
+        self.pdf_path_list[selected_pdf] = zugfert_to_ledger_import(
+            xml_path, get_datev_account_no
+        )
+        self.update_treeview()
+
+    def import_xmls(self) -> None:
+        missing_xml: list[Path] = []
+        for pdf in self.pdf_path_list:
+            if self.pdf_path_list[pdf] is None:
+                missing_xml.append(pdf)
+        if len(missing_xml) == 0:
+            messagebox.showinfo(
+                "All files imported", "All PDFs have XML data. import not needed."
+            )
+            return
+
+        xml_folder = Path(
+            askdirectory(
+                title="Select XML folder",
+                initialdir=missing_xml[0].parent,
+            )
+        )
+
+        if not xml_folder.exists() or not xml_folder.is_dir():
+            messagebox.showerror(
+                "Directory Error", f"The directory {xml_folder} does not exist."
+            )
+            return
+
+        missing_xmls = []
+
+        for pdf in missing_xml:
+            xml_file = xml_folder / (pdf.stem + ".xml")
+            if not xml_file.exists():
+                xml_file = xml_folder / (pdf.stem + "_rg" + ".xml")
+
+            if not xml_file.exists() or not xml_file.is_file():
+                missing_xmls.append(pdf.stem)
+                continue
+            self.pdf_path_list[pdf] = zugfert_to_ledger_import(
+                xml_file, get_datev_account_no
+            )
+
+        if len(missing_xmls) > 0:
+            file_str = ", ".join(f"({f}.xml {f}_rg.xml)" for f in missing_xmls)
+            messagebox.showwarning(
+                "Missing XML files",
+                f"The following XML files were not found in the selected directory: {file_str}",
+            )
+
+        self.update_treeview(delete=True)
