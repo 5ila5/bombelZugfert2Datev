@@ -8,4 +8,4 @@ fi
 
 # activate virtual environment
 .venv/bin/pip install -r requirements.txt
-.venv/bin/python3 archive_builder.py
+.venv/bin/python3 -m converter_app
