@@ -198,7 +198,7 @@ class App:
         sql = f"""
         SELECT k.DatevKtrNr, k.KdNme1, k.KdOrt, k.KdNr, r.RgNr, r.RgDat, r.RgBrutto, r.Par13
         FROM Rechnungen r
-        JOIN Kunden k on Rechnungen.Kdidx = k.KdIdx
+        JOIN Kunden k on r.Kdidx = k.KdIdx
         WHERE r.RgNr IN ({placeholders})
         """  # noqa: S608  # nosec
         mycursor = mydb.cursor(dictionary=True)
@@ -279,6 +279,7 @@ class App:
                 ),
                 generating_system=SOFTWARE_NAME,
             )
+            saved = False
             for item in self.tree.selection():
                 pdf_path = Path(item)
                 rg_nr = pdf_path.with_suffix("").name.removesuffix("_rg")
@@ -287,6 +288,15 @@ class App:
                         ledger_import_xml,
                         datetime.strptime(issue_date_time, "%Y-%m-%d").timetuple()[0:2],
                     )
+                    saved = True
+                    break
+            if not saved:
+                messagebox.showwarning(
+                    "Could not save",
+                    "Could not save document: " + str(row["RgNr"]),
+                )
+                continue
+        self.update_treeview()
 
     @staticmethod
     def extract_xml_from_pdf(pdf: Path) -> Path | None:
