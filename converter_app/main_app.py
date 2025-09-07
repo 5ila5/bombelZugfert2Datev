@@ -1,4 +1,5 @@
 import tempfile
+from datetime import datetime
 from pathlib import Path
 from tkinter import END, Button, Tk, messagebox
 from tkinter.filedialog import askdirectory, askopenfilename, askopenfilenames
@@ -9,10 +10,19 @@ from pypdf import PdfReader
 
 from converter_app.archive_builder import build_archive_and_save
 from converter_app.xml_inspector import XmlInspector
-from datev_creator.ledger_import import AccountsReceivableLedger, LedgerImport
-from datev_creator.zugfert2ledger_import import zugfert_to_ledger_import
+from datev_creator.ledger_import import (
+    AccountsReceivableLedger,
+    Consolidate,
+    LedgerImport,
+)
+from datev_creator.utils import SOFTWARE_NAME
+from datev_creator.zugfert2ledger_import import (
+    LEDGER_XML_DATA,
+    create_ledgger,
+    zugfert_to_ledger_import,
+)
 
-from .database_retrieve_account_no import get_datev_account_no
+from .database_retrieve_account_no import get_datev_account_no, mydb
 
 LedgerImportWMetadata = tuple[LedgerImport, tuple[int, int]]
 
@@ -73,6 +83,12 @@ class App:
             self.main_window, text="Inspect selected", command=self.inspect
         )
 
+        button_xml_from_database = Button(
+            self.main_window,
+            text="import xml from database (selected)",
+            command=self.import_xmls_from_database,
+        )
+
         button_save = Button(
             self.main_window,
             text="Save",
@@ -83,6 +99,7 @@ class App:
         button_inspect.pack(side="left", padx=4, pady=4)
         import_xml_button.pack(side="left", padx=4, pady=4)
         import_single_xml_button.pack(side="left", padx=4, pady=4)
+        button_xml_from_database.pack(side="left", padx=4, pady=4)
         delete_button.pack(side="left", padx=4, pady=4)
         button_save.pack(side="left", padx=4, pady=4)
 
@@ -164,6 +181,112 @@ class App:
 
     def run(self):
         self.main_window.mainloop()
+
+    def import_xmls_from_database(self) -> None:
+        selected_rgs: list[str] = []
+        for item in self.tree.selection():
+            selected_rgs.append(Path(item).with_suffix("").name.removesuffix("_rg"))
+
+        if len(selected_rgs) == 0:
+            messagebox.showwarning(
+                "No selection",
+                "Please select at least one PDF to import the XML for.",
+            )
+            return
+
+        placeholders = ", ".join(["%s"] * len(selected_rgs))
+        sql = f"""
+        SELECT k.DatevKtrNr, k.KdNme1, k.KdOrt, k.KdNr, r.RgNr, r.RgDat, r.RgBrutto, r.Par13
+        FROM Rechnungen r
+        JOIN Kunden k on Rechnungen.Kdidx = k.KdIdx
+        WHERE r.RgNr IN ({placeholders})
+        """  # noqa: S608  # nosec
+        mycursor = mydb.cursor(dictionary=True)
+        mycursor.execute(sql, tuple(selected_rgs))
+        results = mycursor.fetchall()
+        if not isinstance(results, list) or len(results) == 0:
+            messagebox.showinfo(
+                "No data",
+                "No XML data found in database for the selected PDFs.",
+            )
+            return
+        seller_tax_id = "DE163738087"
+        for row in results:
+            if not isinstance(row, dict) or len(row) < 7:
+                messagebox.showwarning(
+                    "Data error",
+                    f"Unexpected data format from database: {row}",
+                )
+                continue
+            issue_date_time = str(row["RgDat"])
+            item_amount = str(row["RgBrutto"])
+            buyer_id = str(row["KdNr"])
+            invoice_id = str(row["RgNr"])
+            if str(row["Par13"]) == "0":
+                tax_rate = "19.00"
+                bu_code = "3"
+            else:
+                tax_rate = "0.00"
+                bu_code = "200"
+            account_no_retrieval = get_datev_account_no
+            ship_from_country = "DE"
+            ship_to_country = "DE"
+            due_date = None
+            delivery_date = None
+            order_id = None
+            information_text = f"Ausgangsrechnung {invoice_id}"
+            buyer_name: str = cast(str, row["KdNme1"])
+            booking_text = buyer_name
+            buyer_city = cast(str, row["KdOrt"])
+
+            ledger_import_xml = LedgerImport(
+                generator_info="Bombelczyk Aufzüge",
+                xml_data=LEDGER_XML_DATA,
+                consolidate=Consolidate(
+                    # find document reference in /home/silas/Documents/coding/python/datev/.venv/lib/python3.13/site-packages/drafthorse/models/*
+                    consolidated_amount=str(item_amount),
+                    #             ExchangedDocument
+                    # IssueDateTime
+                    # DateTimeString
+                    consolidated_date=issue_date_time,
+                    consolidated_currency_code="EUR",
+                    ledgers=[
+                        create_ledgger(
+                            issue_date_time=issue_date_time,
+                            currency_code="EUR",
+                            buyer_name=buyer_name,
+                            buyer_city=buyer_city,
+                            account_no_retrieval=account_no_retrieval,
+                            item_amount=item_amount,
+                            buyer_id=buyer_id,
+                            invoice_id=invoice_id,
+                            bu_code=bu_code,
+                            tax_rate=tax_rate,
+                            seller_tax_id=seller_tax_id,
+                            ship_from_country=ship_from_country,
+                            buyer_tax_id=None,
+                            ship_to_country=ship_to_country,
+                            due_date=due_date,
+                            delivery_date=delivery_date,
+                            order_id=order_id,
+                            information_text=information_text,
+                            booking_text=booking_text,
+                        )
+                    ],
+                    consolidated_invoice_id=invoice_id,
+                    consolidated_delivery_date=None,
+                    consolidated_order_id=None,
+                ),
+                generating_system=SOFTWARE_NAME,
+            )
+            for item in self.tree.selection():
+                pdf_path = Path(item)
+                rg_nr = pdf_path.with_suffix("").name.removesuffix("_rg")
+                if rg_nr == str(row["RgNr"]):
+                    self.pdf_path_list[pdf_path] = (
+                        ledger_import_xml,
+                        datetime.strptime(issue_date_time, "%Y-%m-%d").timetuple()[0:2],
+                    )
 
     @staticmethod
     def extract_xml_from_pdf(pdf: Path) -> Path | None:

@@ -28,9 +28,12 @@ def import_zugfert(xml_path: Path) -> Document:
     return Document.parse(xml)
 
 
-def ledger_from_document(
+def create_ledgger(
+    issue_date_time: str,
+    currency_code: str,
+    buyer_name: str,
+    buyer_city: str | None,
     account_no_retrieval: Callable[[str | None, str], str | None],
-    document: Document,
     item_amount: str,
     buyer_id: str | None,
     invoice_id: str,
@@ -45,13 +48,11 @@ def ledger_from_document(
     order_id: str | None,
     information_text: str | None,
     booking_text: str | None = None,
-) -> AccountsReceivableLedger:
+):
     return AccountsReceivableLedger(
         base1=Base1(
             base=Base(
-                date=str(document.header.issue_date_time)
-                if document.header.issue_date_time
-                else "",
+                date=issue_date_time,
                 amount=item_amount,
                 discount_amount=None,
                 account_no=account_no_retrieval(buyer_id, invoice_id),
@@ -62,9 +63,7 @@ def ledger_from_document(
                 tax=tax_rate,
                 information=information_text[:120] if information_text else None,
             ),
-            currency_code=str(document.trade.settlement.currency_code)
-            if document.trade.settlement.currency_code
-            else "EUR",
+            currency_code=currency_code,
             invoice_id=invoice_id,
             booking_text=booking_text,
             type_of_receivable=None,
@@ -94,10 +93,55 @@ def ledger_from_document(
             delivery_date=delivery_date,
             order_id=order_id,
         ),
-        customer_name=str(document.trade.agreement.buyer.name),
-        customer_city=str(document.trade.agreement.buyer.address.city_name)
+        customer_name=buyer_name,
+        customer_city=buyer_city,
+    )
+
+
+def ledger_from_document(
+    account_no_retrieval: Callable[[str | None, str], str | None],
+    document: Document,
+    item_amount: str,
+    buyer_id: str | None,
+    invoice_id: str,
+    bu_code: str,
+    tax_rate: str | None,
+    seller_tax_id: str | None,
+    ship_from_country: str | None,
+    buyer_tax_id: str | None,
+    ship_to_country: str | None,
+    due_date: str | None,
+    delivery_date: str | None,
+    order_id: str | None,
+    information_text: str | None,
+    booking_text: str | None = None,
+) -> AccountsReceivableLedger:
+    return create_ledgger(
+        issue_date_time=str(document.header.issue_date_time)
+        if document.header.issue_date_time
+        else "",
+        currency_code=str(document.trade.settlement.currency_code)
+        if document.trade.settlement.currency_code
+        else "EUR",
+        buyer_name=str(document.trade.agreement.buyer.name),
+        buyer_city=str(document.trade.agreement.buyer.address.city_name)
         if document.trade.agreement.buyer.address
         else None,
+        account_no_retrieval=account_no_retrieval,
+        item_amount=item_amount,
+        buyer_id=buyer_id,
+        invoice_id=invoice_id,
+        bu_code=bu_code,
+        tax_rate=tax_rate,
+        seller_tax_id=seller_tax_id,
+        ship_from_country=ship_from_country,
+        buyer_tax_id=buyer_tax_id,
+        ship_to_country=ship_to_country,
+        due_date=due_date,
+        delivery_date=delivery_date,
+        order_id=order_id,
+        information_text=information_text,
+        booking_text=booking_text,
     )
 
 
