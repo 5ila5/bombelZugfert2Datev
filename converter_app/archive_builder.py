@@ -30,9 +30,15 @@ def build_archive_and_save(data: Mapping[Path, LedgerImportWMetadata]):
                 extension=[
                     ArchiveDocumentExtension(
                         xsi_type=XsiType.ACCOUNTS_RECEIVABLE_LEDGER,
-                        property_=ArchiveDocumentExtensionProperty(
-                            ArchiveDocumentExtensionPropertyKey.INVOICE_MONTH_FORMAT,
-                            f"{year:04d}-{month:02d}",
+                        property_=(
+                            ArchiveDocumentExtensionProperty(
+                                ArchiveDocumentExtensionPropertyKey.INVOICE_MONTH_FORMAT,
+                                f"{year:04d}-{month:02d}",
+                            ),
+                            ArchiveDocumentExtensionProperty(
+                                ArchiveDocumentExtensionPropertyKey.INVOICE_FOLDER,
+                                "Kundenrechnungen",
+                            ),
                         ),
                         filename=ledger_file_name,
                     ),
