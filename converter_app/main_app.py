@@ -9,6 +9,7 @@ from typing import cast
 from pypdf import PdfReader
 
 from converter_app.archive_builder import build_archive_and_save
+from converter_app.settings import Settings
 from converter_app.xml_inspector import XmlInspector
 from datev_creator.ledger_import import (
     AccountsReceivableLedger,
@@ -30,6 +31,7 @@ LedgerImportWMetadata = tuple[LedgerImport, tuple[int, int]]
 class App:
     def __init__(self):
         self.pdf_path_list: dict[Path, LedgerImportWMetadata | None] = {}
+        self._settings = Settings()
         # tkinter GUI to select a file
         # pdf_path_list = ["a.pdf", "b.pdf"]
 
@@ -69,6 +71,13 @@ class App:
             self.main_window, text="import single xml", command=self.import_single_xml
         )
 
+        # add settings button that opens dialoge to change default paths
+        settings_button = Button(
+            self.main_window,
+            text="Settings",
+            command=self._settings.open_tk_settings_dialoge,
+        )
+
         delete_button = Button(
             self.main_window,
             text="Delete selected",
@@ -102,6 +111,7 @@ class App:
         button_xml_from_database.pack(side="left", padx=4, pady=4)
         delete_button.pack(side="left", padx=4, pady=4)
         button_save.pack(side="left", padx=4, pady=4)
+        settings_button.pack(side="right", padx=4, pady=4)
 
     def save(self):
         for pdf, ledger in self.pdf_path_list.items():
@@ -123,6 +133,7 @@ class App:
             )
             return
         build_archive_and_save(pdf_path_list)
+        messagebox.showinfo("Success", "Archive saved successfully.")
 
     def inspect(self):
         if len(self.tree.selection()) > 1:
@@ -344,7 +355,7 @@ class App:
         pdf_paths = askopenfilenames(
             title="Select PDF files",
             filetypes=[("PDF files", "*.pdf")],
-            initialdir=Path(__file__).parent,
+            initialdir=self._settings.pdf_path,
             # initialdir=Path.home(),
         )
 
@@ -384,7 +395,7 @@ class App:
         xml_file = askopenfilename(
             title="Select XML file",
             filetypes=[("XML files", "*.xml")],
-            initialdir=selected_pdf.parent,
+            initialdir=self._settings.xml_folder,
             # initialdir=Path.home(),
         )
         if not xml_file:
@@ -417,8 +428,9 @@ class App:
         xml_folder = Path(
             askdirectory(
                 title="Select XML folder",
-                initialdir=missing_xml[0].parent,
+                initialdir=self._settings.xml_folder,
             )
+            or ""
         )
 
         if not xml_folder.exists() or not xml_folder.is_dir():
