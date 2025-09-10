@@ -93,7 +93,7 @@ def create_ledgger(
             delivery_date=delivery_date,
             order_id=order_id,
         ),
-        customer_name=buyer_name,
+        customer_name=buyer_name[:50],
         customer_city=buyer_city,
     )
 
