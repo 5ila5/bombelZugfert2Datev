@@ -82,12 +82,15 @@ def build_archive_and_save(data: Mapping[Path, LedgerImportWMetadata]):
     if not zip_path:
         print("No ZIP file selected.")
         return
-
-    build_zip(
-        archive=archive_xml,
-        documents=[
-            (pdf.with_suffix(".xml").name, ledger[0]) for pdf, ledger in data.items()
-        ],
-        out_path=zip_path,
-        other_files=data.keys(),
-    )
+    try:
+        build_zip(
+            archive=archive_xml,
+            documents=[
+                (pdf.with_suffix(".xml").name, ledger[0])
+                for pdf, ledger in data.items()
+            ],
+            out_path=zip_path,
+            other_files=data.keys(),
+        )
+    except Exception as e:
+        raise e

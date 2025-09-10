@@ -132,7 +132,11 @@ class App:
                 "No PDFs to save. Please import PDFs before saving.",
             )
             return
-        build_archive_and_save(pdf_path_list)
+        try:
+            build_archive_and_save(pdf_path_list)
+        except Exception as e:
+            messagebox.showerror("Error", f"An error occurred while saving: {e}")
+            return
         messagebox.showinfo("Success", "Archive saved successfully.")
 
     def inspect(self):
