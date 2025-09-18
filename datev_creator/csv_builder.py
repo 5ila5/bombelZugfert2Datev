@@ -159,43 +159,43 @@ class Header:
     )
 
     def to_csv_herder(self) -> str:
-        return ";".join(
-            [
-                f'"{self.kennzeichen}"',
-                self.version,
-                str(self.format_kategory.value),
-                f'"{self.formatname}"',
-                str(self.formatversion),
-                self.erzeugt_am.strftime("%Y%m%d%H%M%S000"),
-                "",
-                f'"{self.herkunft}"',
-                f'"{self.exportiert_von}"',
-                f'"{self.importiert_von}"',
-                str(self.berater_nummer),
-                str(self.mandant_nummer),
-                self.wj_beginn.strftime("%Y%m%d"),
-                str(self.sachkontenlaenge),
-                self.datum_von.strftime("%Y%m%d"),
-                self.datum_bis.strftime("%Y%m%d"),
-                f'"{self.bezeichnung}"',
-                f'"{self.diktatkuerzel or ""}"',
-                str(self.buchungstyp.value),
-                str(self.rechnungslegungszweck.value),
-                str(self.festschreibung),
-                f'"{self.wkz}"',
-                "",
-                '""'
-                if self.derivatskennzeichen is None
-                else f'"{self.derivatskennzeichen}"',
-                "",
-                "",
-                f'"{self.sachkontenrahmen or ""}"',
-                self.id_der_branchenloesung or "",
-                "",
-                '""' if self.reserviert_5 is None else f'"{self.reserviert_5}"',
-                f'"{self.anwendungsinformation or ""}"',
-            ]
-        )
+        data_list = [
+            f'"{self.kennzeichen}"',
+            self.version,
+            str(self.format_kategory.value),
+            f'"{self.formatname}"',
+            str(self.formatversion),
+            self.erzeugt_am.strftime("%Y%m%d%H%M%S000"),
+            "",
+            f'"{self.herkunft}"',
+            f'"{self.exportiert_von}"',
+            f'"{self.importiert_von}"',
+            str(self.berater_nummer),
+            str(self.mandant_nummer),
+            self.wj_beginn.strftime("%Y%m%d"),
+            str(self.sachkontenlaenge),
+            self.datum_von.strftime("%Y%m%d"),
+            self.datum_bis.strftime("%Y%m%d"),
+            f'"{self.bezeichnung}"',
+            f'"{self.diktatkuerzel or ""}"',
+            str(self.buchungstyp.value),
+            str(self.rechnungslegungszweck.value),
+            str(self.festschreibung),
+            f'"{self.wkz}"',
+            "",
+            '""'
+            if self.derivatskennzeichen is None
+            else f'"{self.derivatskennzeichen}"',
+            "",
+            "",
+            f'"{self.sachkontenrahmen or ""}"',
+            self.id_der_branchenloesung or "",
+            "",
+            '""' if self.reserviert_5 is None else f'"{self.reserviert_5}"',
+            f'"{self.anwendungsinformation or ""}"',
+        ]
+
+        return ";".join(data_list)
 
     @staticmethod
     def from_csv_header(data: str):
@@ -526,7 +526,7 @@ class BuchungsstapelItem:
     def to_csv_line(self) -> str:
         """Convert the BuchungsstapelItem to a CSV line."""
         output = StringIO()
-        writer = csv.writer(output, delimiter=";", quoting=csv.QUOTE_MINIMAL)
+        writer = csv.writer(output, delimiter=";", quoting=csv.QUOTE_ALL)
         writer.writerow(asdict(self).values())
         return output.getvalue().strip()
 
@@ -559,7 +559,7 @@ class BuchungsstapelItem:
             raise ValueError("The ledger must have a booking text")
 
         return BuchungsstapelItem(
-            Umsatz=ledger.consolidate.consolidated_amount,
+            Umsatz=ledger.consolidate.consolidated_amount.replace(".", ","),
             SollHabenKennzeichen="H",
             WKZ_Umsatz="",
             Kurs="",
@@ -756,7 +756,10 @@ class Buchungsstapel:
 
     def to_csv(self) -> str:
         """Convert the entire Buchungsstapel to a CSV string."""
-        lines = [self.header.to_csv_herder(), DATA_DESCRIPTION_HEAD]
+        lines = [
+            self.header.to_csv_herder(),
+            DATA_DESCRIPTION_HEAD,
+        ]
         for item in self.items:
             lines.append(item.to_csv_line())
         return "\n".join(lines)
