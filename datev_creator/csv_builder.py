@@ -558,6 +558,10 @@ class BuchungsstapelItem:
         if not booking_text:
             raise ValueError("The ledger must have a booking text")
 
+        konto_nr = payable_ledger.base1.base.account_no
+        if not konto_nr:
+            raise ValueError("not account_no")
+
         return BuchungsstapelItem(
             Umsatz=ledger.consolidate.consolidated_amount.replace(".", ","),
             SollHabenKennzeichen="H",
@@ -566,7 +570,7 @@ class BuchungsstapelItem:
             BasisUmsatz="",
             WKZ_BasisUmsatz="",
             Konto=str(settings.buchungskonto),
-            Gegenkonto=str(settings.gegenkonto),
+            Gegenkonto=konto_nr,
             BU_Schluessel="",
             Belegdatum=createion_date.strftime("%d%m"),
             Belegfeld_1=rg_nr,

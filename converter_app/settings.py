@@ -18,7 +18,6 @@ class Settings:
     mandantennummer: int = 0
     sachkontenlaenge = 4
     buchungskonto = 0
-    gegenkonto = 0
 
     def check_csv_settings(self) -> bool:
         if self.beraternummer <= 0:
@@ -57,8 +56,6 @@ class Settings:
                         self.sachkontenlaenge = int(value)
                     case "buchungskonto":
                         self.buchungskonto = int(value)
-                    case "gegenkonto":
-                        self.gegenkonto = int(value)
 
     def __init__(self):
         super().__init__()
@@ -73,7 +70,6 @@ class Settings:
                 "mandantennummer": self.mandantennummer,
                 "sachkontenlaenge": self.sachkontenlaenge,
                 "buchungskonto": self.buchungskonto,
-                "gegenkonto": self.gegenkonto,
             }
             json.dump(to_save, f, indent=4)
 
@@ -128,7 +124,7 @@ class Settings:
         button4.pack()
         # end sachkontenlaenge selector
 
-        # number input for beraternummer, mandantennummer, buchungskonto, gegenkonto
+        # number input for beraternummer, mandantennummer, buchungskonto
         def create_number_input(label_text: str, attr_name: str):
             # actual input field
             label = Label(window, text=f"{label_text}: {getattr(self, attr_name)}")
@@ -154,7 +150,6 @@ class Settings:
         create_number_input("Beraternummer", "beraternummer")
         create_number_input("Mandantennummer", "mandantennummer")
         create_number_input("Buchungskonto", "buchungskonto")
-        create_number_input("Gegenkonto", "gegenkonto")
 
         window.mainloop()
 
