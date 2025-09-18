@@ -457,3 +457,7 @@ class LedgerImport(XmlBuilder):
         xml.append(self.consolidate.xml)
 
         return etree.ElementTree(xml)
+
+
+LedgerImportWMetadata = tuple[LedgerImport, tuple[int, int]]
+"""LedgerImport [year, month]"""

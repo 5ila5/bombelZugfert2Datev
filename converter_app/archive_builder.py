@@ -13,11 +13,10 @@ from datev_creator.archive import (
     ArchiveHeader,
     XsiType,
 )
-from datev_creator.ledger_import import LedgerImport
+from datev_creator.csv_builder import build_csv
+from datev_creator.ledger_import import LedgerImportWMetadata
 from datev_creator.utils import SOFTWARE_NAME
 from datev_creator.zip_builder import build_zip
-
-LedgerImportWMetadata = tuple[LedgerImport, tuple[int, int]]
 
 
 def build_archive_and_save(data: Mapping[Path, LedgerImportWMetadata]):
@@ -79,9 +78,27 @@ def build_archive_and_save(data: Mapping[Path, LedgerImportWMetadata]):
             initialfile=f"archive_{datetime.now().strftime('%Y%m%d_%H%M%S')}.zip",
         )
     )
+
     if not zip_path:
         print("No ZIP file selected.")
         return
+
+    csv_path_suggestion = zip_path.with_suffix(".csv")
+    csv_path = Path(
+        asksaveasfilename(
+            title="Save CSV file",
+            defaultextension=".csv",
+            filetypes=[("CSV files", "*.csv")],
+            initialfile=csv_path_suggestion.name,
+            initialdir=csv_path_suggestion.parent,
+        )
+    )
+    if not csv_path:
+        print("No CSV file selected.")
+        return
+
+    build_csv(data, csv_path)
+
     try:
         build_zip(
             archive=archive_xml,

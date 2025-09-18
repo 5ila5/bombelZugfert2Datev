@@ -7,9 +7,8 @@ from datev_creator.ledger_import import (
     AccountsReceivableLedger,
     CashLedger,
     LedgerImport,
+    LedgerImportWMetadata,
 )
-
-LedgerImportWMetadata = tuple[LedgerImport, tuple[int, int]]
 
 
 class XmlInspector:

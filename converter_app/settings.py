@@ -1,15 +1,42 @@
 import json
 from dataclasses import dataclass
 from pathlib import Path
-from tkinter import Button, Label, Tk, filedialog
+from tkinter import Button, Entry, Label, Tk, filedialog
+from typing import Optional
 
 settings_file = Path(__file__).parent.parent / "settings.json"
+
+
+settings_instance: Optional["Settings"] = None
 
 
 @dataclass
 class Settings:
     pdf_path: Path = settings_file.parent
     xml_folder: Path = settings_file.parent
+    beraternummer: int = 0
+    mandantennummer: int = 0
+    sachkontenlaenge = 4
+    buchungskonto = 0
+    gegenkonto = 0
+
+    def check_csv_settings(self) -> bool:
+        if self.beraternummer <= 0:
+            return False
+        if self.mandantennummer <= 0:
+            return False
+        if self.sachkontenlaenge <= 0:
+            return False
+        if self.buchungskonto <= 0:
+            return False
+        return True
+
+    @staticmethod
+    def getinstance() -> "Settings":
+        global settings_instance
+        if settings_instance is None:
+            settings_instance = Settings()
+        return settings_instance
 
     def load_json(self):
         if not settings_file.exists():
@@ -22,6 +49,16 @@ class Settings:
                         self.pdf_path = Path(value)
                     case "xml_folder":
                         self.xml_folder = Path(value)
+                    case "beraternummer":
+                        self.beraternummer = int(value)
+                    case "mandantennummer":
+                        self.mandantennummer = int(value)
+                    case "sachkontenlaenge":
+                        self.sachkontenlaenge = int(value)
+                    case "buchungskonto":
+                        self.buchungskonto = int(value)
+                    case "gegenkonto":
+                        self.gegenkonto = int(value)
 
     def __init__(self):
         super().__init__()
@@ -32,6 +69,11 @@ class Settings:
             to_save = {
                 "pdf_path": str(self.pdf_path),
                 "xml_folder": str(self.xml_folder),
+                "beraternummer": self.beraternummer,
+                "mandantennummer": self.mandantennummer,
+                "sachkontenlaenge": self.sachkontenlaenge,
+                "buchungskonto": self.buchungskonto,
+                "gegenkonto": self.gegenkonto,
             }
             json.dump(to_save, f, indent=4)
 
@@ -63,6 +105,56 @@ class Settings:
             command=lambda: self.change_xml_folder(label2),
         )
         button2.pack()
+
+        # sachkontenlaenge selector 4,5,6,7,8
+        label3 = Label(window, text=f"Sachkontenlänge: {self.sachkontenlaenge}")
+        label3.pack()
+
+        def increase_sachkontenlaenge():
+            if self.sachkontenlaenge < 8:
+                self.sachkontenlaenge += 1
+                label3.config(text=f"Sachkontenlänge: {self.sachkontenlaenge}")
+                self.save()
+
+        def decrease_sachkontenlaenge():
+            if self.sachkontenlaenge > 4:
+                self.sachkontenlaenge -= 1
+                label3.config(text=f"Sachkontenlänge: {self.sachkontenlaenge}")
+                self.save()
+
+        button3 = Button(window, text="+", command=increase_sachkontenlaenge)
+        button3.pack()
+        button4 = Button(window, text="-", command=decrease_sachkontenlaenge)
+        button4.pack()
+        # end sachkontenlaenge selector
+
+        # number input for beraternummer, mandantennummer, buchungskonto, gegenkonto
+        def create_number_input(label_text: str, attr_name: str):
+            # actual input field
+            label = Label(window, text=f"{label_text}: {getattr(self, attr_name)}")
+            label.pack()
+            entry = Entry(window)
+
+            # entry.insert(0, str(getattr(self, attr_name)))
+            entry.pack()
+
+            def save_number():
+                try:
+                    value = int(entry.get())
+                    setattr(self, attr_name, value)
+                    label.config(text=f"{label_text}: {value}")
+                    self.save()
+                except ValueError:
+                    pass
+
+            button = Button(window, text="Save", command=save_number)
+            button.pack()
+            return label, entry, button
+
+        create_number_input("Beraternummer", "beraternummer")
+        create_number_input("Mandantennummer", "mandantennummer")
+        create_number_input("Buchungskonto", "buchungskonto")
+        create_number_input("Gegenkonto", "gegenkonto")
 
         window.mainloop()
 

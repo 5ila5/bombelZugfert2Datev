@@ -15,6 +15,7 @@ from datev_creator.ledger_import import (
     AccountsReceivableLedger,
     Consolidate,
     LedgerImport,
+    LedgerImportWMetadata,
 )
 from datev_creator.utils import SOFTWARE_NAME
 from datev_creator.zugfert2ledger_import import (
@@ -25,13 +26,11 @@ from datev_creator.zugfert2ledger_import import (
 
 from .database_retrieve_account_no import get_datev_account_no, mydb
 
-LedgerImportWMetadata = tuple[LedgerImport, tuple[int, int]]
-
 
 class App:
     def __init__(self):
         self.pdf_path_list: dict[Path, LedgerImportWMetadata | None] = {}
-        self._settings = Settings()
+        self._settings = Settings.getinstance()
         # tkinter GUI to select a file
         # pdf_path_list = ["a.pdf", "b.pdf"]
 
@@ -114,6 +113,13 @@ class App:
         settings_button.pack(side="right", padx=4, pady=4)
 
     def save(self):
+        if not self._settings.check_csv_settings():
+            messagebox.showwarning(
+                "Settings incomplete",
+                "Please complete the settings needed for csv generation before saving.",
+            )
+            return
+
         for pdf, ledger in self.pdf_path_list.items():
             if ledger is None:
                 messagebox.showwarning(
