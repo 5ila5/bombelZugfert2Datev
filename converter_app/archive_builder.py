@@ -1,6 +1,7 @@
 from datetime import datetime
 from pathlib import Path
 from tkinter.filedialog import asksaveasfilename
+from tkinter.messagebox import askyesno
 from typing import Mapping
 
 from datev_creator.archive import (
@@ -83,21 +84,28 @@ def build_archive_and_save(data: Mapping[Path, LedgerImportWMetadata]):
         print("No ZIP file selected.")
         return
 
-    csv_path_suggestion = zip_path.with_suffix(".csv")
-    csv_path = Path(
-        asksaveasfilename(
-            title="Save CSV file",
-            defaultextension=".csv",
-            filetypes=[("CSV files", "*.csv")],
-            initialfile=csv_path_suggestion.name,
-            initialdir=csv_path_suggestion.parent,
-        )
-    )
-    if not csv_path:
-        print("No CSV file selected.")
-        return
+    # ask weather to build csv
 
-    build_csv(data, csv_path)
+    should_build_csv = askyesno(
+        title="Build CSV",
+        message="Do you want to build a CSV file for the ledgers?",
+    )
+    if should_build_csv:
+        csv_path_suggestion = zip_path.with_suffix(".csv")
+        csv_path = Path(
+            asksaveasfilename(
+                title="Save CSV file",
+                defaultextension=".csv",
+                filetypes=[("CSV files", "*.csv")],
+                initialfile=csv_path_suggestion.name,
+                initialdir=csv_path_suggestion.parent,
+            )
+        )
+        if not csv_path:
+            print("No CSV file selected.")
+            return
+
+        build_csv(data, csv_path)
 
     try:
         build_zip(
