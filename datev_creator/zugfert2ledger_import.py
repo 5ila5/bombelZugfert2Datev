@@ -408,10 +408,6 @@ def zugfert_to_ledger_import(
     document = import_zugfert(xml_path)
     ledgers = retrieve_ledgers(document, account_no_retrieval)
 
-    print(
-        f"{document.trade.settlement.monetary_summation.grand_total=}, {type(document.trade.settlement.monetary_summation.grand_total)=}"
-    )
-
     ledger_import_xml = LedgerImport(
         generator_info=str(document.trade.agreement.seller.name),
         xml_data=LEDGER_XML_DATA,
