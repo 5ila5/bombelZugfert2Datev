@@ -10,6 +10,13 @@ DatafileOrName: TypeAlias = Literal["datafile", "name"]
 OneToThree: TypeAlias = Literal["1", "2", "3"]
 
 
+NAME_SPACE = "http://xml.datev.de/bedi/tps/document/v06.0"
+
+
+def qn(tag: str) -> str:
+    return f"{{{NAME_SPACE}}}{tag}"
+
+
 class XsiType(enum.Enum):
     ACCOUNTS_PAYABLE_LEDGER = "accountsPayableLedger"
     ACCOUNTS_RECEIVABLE_LEDGER = "accountsReceivableLedger"
@@ -88,11 +95,11 @@ class ArchiveDocumentRepository(XmlBuilder):
 
     @property
     def xml(self) -> etree._Element:
-        repository = etree.Element("repository")
+        repository = etree.Element(qn("repository"))
         for i in range(3):
             etree.SubElement(
                 repository,
-                "level",
+                qn("level"),
                 attrib={
                     "id": self.id[i],
                     "name": self.name[i],
@@ -127,17 +134,19 @@ class ArchiveHeader(XmlBuilder):
 
     @property
     def xml(self) -> etree._Element:
-        header: etree._Element = etree.Element("header")
-        etree.SubElement(header, "date").text = self.date
+        header: etree._Element = etree.Element(qn("header"))
+        etree.SubElement(header, qn("date")).text = self.date
 
         if self.description is not None:
-            etree.SubElement(header, "description").text = self.description[:255]
+            etree.SubElement(header, qn("description")).text = self.description[:255]
         if self.consultant_number is not None:
-            etree.SubElement(header, "consultantNumber").text = self.consultant_number
+            etree.SubElement(
+                header, qn("consultantNumber")
+            ).text = self.consultant_number
         if self.client_number is not None:
-            etree.SubElement(header, "clientNumber").text = self.client_number
+            etree.SubElement(header, qn("clientNumber")).text = self.client_number
         if self.client_name is not None:
-            etree.SubElement(header, "clientName").text = self.client_name
+            etree.SubElement(header, qn("clientName")).text = self.client_name
 
         return header
 
@@ -183,7 +192,7 @@ class ArchiveDocumentExtension(XmlBuilder):
         }
 
         extension: etree._Element = etree.Element(
-            "extension",
+            qn("extension"),
             attrib=attributes,
             nsmap=None,
         )
@@ -197,7 +206,7 @@ class ArchiveDocumentExtension(XmlBuilder):
         for prop in props:
             etree.SubElement(
                 extension,
-                "property",
+                qn("property"),
                 attrib={"value": prop.value, "key": prop.key.value},
             )
 
@@ -243,7 +252,7 @@ class ArchiveDocument(XmlBuilder):
             attributes["keywords"] = self.keywords
 
         document: etree._Element = etree.Element(
-            "document",
+            qn("document"),
             attrib=attributes,
             nsmap=None,
         )
@@ -269,7 +278,7 @@ class ArchiveContent(XmlBuilder):
 
     @property
     def xml(self) -> etree._Element:
-        xml: etree._Element = etree.Element("content")
+        xml: etree._Element = etree.Element(qn("content"))
         for doc in self.document:
             xml.append(doc.xml)
 
@@ -295,7 +304,7 @@ class Archive(XmlBuilder):
     @property
     def xml(self) -> etree._ElementTree:
         xml: etree._Element = etree.Element(
-            "archive",
+            qn("archive"),
             attrib={
                 "{http://www.w3.org/2001/XMLSchema-instance}schemaLocation": "http://xml.datev.de/bedi/tps/document/v06.0 Document_v060.xsd",
                 "version": "6.0",

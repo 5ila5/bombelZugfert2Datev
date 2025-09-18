@@ -10,6 +10,13 @@ LedgerType: TypeAlias = Literal[
 ]
 
 
+NAME_SPACE = "http://xml.datev.de/bedi/tps/ledger/v060"
+
+
+def qn(tag: str) -> str:
+    return f"{{{NAME_SPACE}}}{tag}"
+
+
 @dataclass
 class Base(XmlBuilder):
     """Element <base> (xsd:extension).
@@ -43,27 +50,27 @@ class Base(XmlBuilder):
 
     @property
     def xml(self) -> etree._Element:
-        base: etree._Element = etree.Element("base")
+        base: etree._Element = etree.Element(qn("base"))
 
-        etree.SubElement(base, "date").text = self.date
-        etree.SubElement(base, "amount").text = self.amount
+        etree.SubElement(base, qn("date")).text = self.date
+        etree.SubElement(base, qn("amount")).text = self.amount
 
         if self.discount_amount is not None:
-            etree.SubElement(base, "discountAmount").text = self.discount_amount
+            etree.SubElement(base, qn("discountAmount")).text = self.discount_amount
         if self.account_no is not None:
-            etree.SubElement(base, "accountNo").text = self.account_no
+            etree.SubElement(base, qn("accountNo")).text = self.account_no
         if self.bu_code is not None:
-            etree.SubElement(base, "buCode").text = self.bu_code
+            etree.SubElement(base, qn("buCode")).text = self.bu_code
         if self.cost_amount is not None:
-            etree.SubElement(base, "costAmount").text = self.cost_amount
+            etree.SubElement(base, qn("costAmount")).text = self.cost_amount
         if self.cost_category_id is not None:
-            etree.SubElement(base, "costCategoryId").text = self.cost_category_id
+            etree.SubElement(base, qn("costCategoryId")).text = self.cost_category_id
         if self.cost_category_id2 is not None:
-            etree.SubElement(base, "costCategoryId2").text = self.cost_category_id2
+            etree.SubElement(base, qn("costCategoryId2")).text = self.cost_category_id2
         if self.tax is not None:
-            etree.SubElement(base, "tax").text = self.tax
+            etree.SubElement(base, qn("tax")).text = self.tax
         if self.information is not None:
-            etree.SubElement(base, "information").text = self.information[:120]
+            etree.SubElement(base, qn("information")).text = self.information[:120]
 
         return base
 
@@ -145,55 +152,59 @@ class Base1(XmlBuilder):
 
     @property
     def xml(self) -> etree._Element:
-        base1: etree._Element = etree.Element("base1")
+        base1: etree._Element = etree.Element(qn("base1"))
 
         # Add the base elements as children as base is an xsd:extension
         for child in self.base.xml:
             base1.append(child)
 
         # Add required elements
-        etree.SubElement(base1, "currencyCode").text = self.currency_code
-        etree.SubElement(base1, "invoiceId").text = self.invoice_id
+        etree.SubElement(base1, qn("currencyCode")).text = self.currency_code
+        etree.SubElement(base1, qn("invoiceId")).text = self.invoice_id
 
         # Add optional elements
         if self.booking_text is not None:
-            etree.SubElement(base1, "bookingText").text = self.booking_text[:30]
+            etree.SubElement(base1, qn("bookingText")).text = self.booking_text[:30]
         if self.type_of_receivable is not None:
-            etree.SubElement(base1, "typeOfReceivable").text = self.type_of_receivable
+            etree.SubElement(
+                base1, qn("typeOfReceivable")
+            ).text = self.type_of_receivable
         if self.own_vat_id is not None:
-            etree.SubElement(base1, "ownVatId").text = self.own_vat_id
+            etree.SubElement(base1, qn("ownVatId")).text = self.own_vat_id
         if self.ship_from_country is not None:
-            etree.SubElement(base1, "shipFromCountry").text = self.ship_from_country
+            etree.SubElement(base1, qn("shipFromCountry")).text = self.ship_from_country
         if self.party_id is not None:
-            etree.SubElement(base1, "partyId").text = self.party_id
+            etree.SubElement(base1, qn("partyId")).text = self.party_id
         if self.paid_at is not None:
-            etree.SubElement(base1, "paidAt").text = self.paid_at
+            etree.SubElement(base1, qn("paidAt")).text = self.paid_at
         if self.internal_invoice_id is not None:
-            etree.SubElement(base1, "internalInvoiceId").text = self.internal_invoice_id
+            etree.SubElement(
+                base1, qn("internalInvoiceId")
+            ).text = self.internal_invoice_id
         if self.vat_id is not None:
-            etree.SubElement(base1, "vatId").text = self.vat_id
+            etree.SubElement(base1, qn("vatId")).text = self.vat_id
         if self.ship_to_country is not None:
-            etree.SubElement(base1, "shipToCountry").text = self.ship_to_country
+            etree.SubElement(base1, qn("shipToCountry")).text = self.ship_to_country
         if self.exchange_rate is not None:
-            etree.SubElement(base1, "exchangeRate").text = self.exchange_rate
+            etree.SubElement(base1, qn("exchangeRate")).text = self.exchange_rate
         if self.bank_code is not None:
-            etree.SubElement(base1, "bankCode").text = self.bank_code
+            etree.SubElement(base1, qn("bankCode")).text = self.bank_code
         if self.bank_account is not None:
-            etree.SubElement(base1, "bankAccount").text = self.bank_account
+            etree.SubElement(base1, qn("bankAccount")).text = self.bank_account
         if self.bank_country is not None:
-            etree.SubElement(base1, "bankCountry").text = self.bank_country
+            etree.SubElement(base1, qn("bankCountry")).text = self.bank_country
         if self.iban is not None:
-            etree.SubElement(base1, "iban").text = self.iban
+            etree.SubElement(base1, qn("iban")).text = self.iban
         if self.swift_code is not None:
-            etree.SubElement(base1, "swiftCode").text = self.swift_code
+            etree.SubElement(base1, qn("swiftCode")).text = self.swift_code
         if self.account_name is not None:
-            etree.SubElement(base1, "accountName").text = self.account_name
+            etree.SubElement(base1, qn("accountName")).text = self.account_name
         if self.payment_conditions_id is not None:
             etree.SubElement(
                 base1, "paymentConditionsId"
             ).text = self.payment_conditions_id
         if self.payment_order is not None:
-            etree.SubElement(base1, "paymentOrder").text = self.payment_order
+            etree.SubElement(base1, qn("paymentOrder")).text = self.payment_order
         if self.discount_percentage is not None:
             etree.SubElement(
                 base1, "discountPercentage"
@@ -203,7 +214,7 @@ class Base1(XmlBuilder):
                 base1, "discountPaymentDate"
             ).text = self.discount_payment_date
         if self.discount_amount2 is not None:
-            etree.SubElement(base1, "discountAmount2").text = self.discount_amount2
+            etree.SubElement(base1, qn("discountAmount2")).text = self.discount_amount2
         if self.discount_percentage2 is not None:
             etree.SubElement(
                 base1, "discountPercentage2"
@@ -213,13 +224,13 @@ class Base1(XmlBuilder):
                 base1, "discountPaymentDate2"
             ).text = self.discount_payment_date2
         if self.due_date is not None:
-            etree.SubElement(base1, "dueDate").text = self.due_date
+            etree.SubElement(base1, qn("dueDate")).text = self.due_date
         if self.bp_account_no is not None:
-            etree.SubElement(base1, "bpAccountNo").text = self.bp_account_no
+            etree.SubElement(base1, qn("bpAccountNo")).text = self.bp_account_no
         if self.delivery_date is not None:
-            etree.SubElement(base1, "deliveryDate").text = self.delivery_date
+            etree.SubElement(base1, qn("deliveryDate")).text = self.delivery_date
         if self.order_id is not None:
-            etree.SubElement(base1, "orderId").text = self.order_id
+            etree.SubElement(base1, qn("orderId")).text = self.order_id
 
         return base1
 
@@ -245,7 +256,7 @@ class AccountsPayableLedger(XmlBuilder):
 
     @property
     def xml(self) -> etree._Element:
-        ledger: etree._Element = etree.Element("accountsPayableLedger")
+        ledger: etree._Element = etree.Element(qn("accountsPayableLedger"))
 
         # Add the base1 element's children directly to this element
         base1_xml = self.base1.xml
@@ -254,9 +265,9 @@ class AccountsPayableLedger(XmlBuilder):
 
         # Add optional elements
         if self.supplier_name is not None:
-            etree.SubElement(ledger, "supplierName").text = self.supplier_name
+            etree.SubElement(ledger, qn("supplierName")).text = self.supplier_name
         if self.supplier_city is not None:
-            etree.SubElement(ledger, "supplierCity").text = self.supplier_city
+            etree.SubElement(ledger, qn("supplierCity")).text = self.supplier_city
 
         return ledger
 
@@ -282,7 +293,7 @@ class AccountsReceivableLedger(XmlBuilder):
 
     @property
     def xml(self) -> etree._Element:
-        ledger: etree._Element = etree.Element("accountsReceivableLedger")
+        ledger: etree._Element = etree.Element(qn("accountsReceivableLedger"))
 
         # Add the base1 element's children directly to this element
         base1_xml = self.base1.xml
@@ -291,9 +302,9 @@ class AccountsReceivableLedger(XmlBuilder):
 
         # Add optional elements
         if self.customer_name is not None:
-            etree.SubElement(ledger, "customerName").text = self.customer_name
+            etree.SubElement(ledger, qn("customerName")).text = self.customer_name
         if self.customer_city is not None:
-            etree.SubElement(ledger, "customerCity").text = self.customer_city
+            etree.SubElement(ledger, qn("customerCity")).text = self.customer_city
 
         return ledger
 
@@ -321,7 +332,7 @@ class CashLedger(XmlBuilder):
 
     @property
     def xml(self) -> etree._Element:
-        ledger: etree._Element = etree.Element("cashLedger")
+        ledger: etree._Element = etree.Element(qn("cashLedger"))
 
         # Add the base element's children directly to this element
         base_xml = self.base.xml
@@ -329,12 +340,12 @@ class CashLedger(XmlBuilder):
             ledger.append(child)
 
         # Add required elements
-        etree.SubElement(ledger, "currencyCode").text = self.currency_code
-        etree.SubElement(ledger, "bookingText").text = self.booking_text
+        etree.SubElement(ledger, qn("currencyCode")).text = self.currency_code
+        etree.SubElement(ledger, qn("bookingText")).text = self.booking_text
 
         # Add optional elements
         if self.invoice_id is not None:
-            etree.SubElement(ledger, "invoiceId").text = self.invoice_id
+            etree.SubElement(ledger, qn("invoiceId")).text = self.invoice_id
 
         return ledger
 
@@ -382,7 +393,7 @@ class Consolidate(XmlBuilder):
             attributes["consolidatedOrderId"] = self.consolidated_order_id
 
         consolidate: etree._Element = etree.Element(
-            "consolidate",
+            qn("consolidate"),
             attrib=attributes,
             nsmap=None,
         )
@@ -412,11 +423,13 @@ class LedgerImport(XmlBuilder):
     generator_info: str  # Unternehmen, welches die XML-Datei erzeugt hat
     xml_data: str  # fester Hinweis zum Vorsteuerabzug
     consolidate: Consolidate
-    xmlns: str = "http://xml.datev.de/bedi/tps/ledger/v060"
+    xmlns: str = NAME_SPACE
     xmlns_xsi: Literal["http://www.w3.org/2001/XMLSchema-instance"] = (
         "http://www.w3.org/2001/XMLSchema-instance"
     )
-    xsi_schema_location: str = "http://xml.datev.de/bedi/tps/ledger/v060 Belegverwaltung_online_ledger_import_v060.xsd"
+    xsi_schema_location: str = (
+        f"{NAME_SPACE} Belegverwaltung_online_ledger_import_v060.xsd"
+    )
     version: str = "6.0"
     generating_system: str | None = None  # Software, welche die XML-Datei erzeugt hat
 
@@ -433,7 +446,7 @@ class LedgerImport(XmlBuilder):
             attributes["generating_system"] = self.generating_system
 
         xml: etree._Element = etree.Element(
-            "LedgerImport",
+            qn("LedgerImport"),
             attrib=attributes,
             nsmap={
                 None: self.xmlns,
