@@ -27,6 +27,49 @@ class DBData(TypedDict):
     country: str
 
 
+DEFAULT_KTR = {
+    "A Diverse Debitoren": 10000,
+    "B Diverse Debitoren": 12000,
+    "C Diverse Debitoren": 14000,
+    "D Diverse Debitoren": 16000,
+    "E Diverse Debitoren": 18000,
+    "F Diverse Debitoren": 20000,
+    "G Diverse Debitoren": 22000,
+    "H Diverse Debitoren": 24000,
+    "I Diverse Debitoren": 26000,
+    "J Diverse Debitoren": 28000,
+    "K Diverse Debitoren": 30000,
+    "l Diverse Debitoren": 32000,
+    "M Diverse Debitoren": 34000,
+    "N Diverse Debitoren": 36000,
+    "O Diverse Debitoren": 37000,  # Wrong but used like this
+    "P Diverse Debitoren": 40000,
+    "Q Diverse Debitoren": 42000,
+    "R Diverse Debitoren": 44000,
+    "S Diverse Debitoren": 46000,
+    "SCH Diverse Debitoren": 48000,
+    "ST Diverse Debitoren": 50000,
+    "T Diverse Debitoren": 52000,
+    "U Diverse Debitoren": 54000,
+    "V Diverse Debitoren": 56000,
+    "W Diverse Debitoren": 58000,
+    "Z Diverse Debitoren": 64000,
+}
+
+DEFAULT_KTR_DB_DATA: list[DBData] = [
+    {
+        "konto_nr": val,
+        "name": key,
+        "kundennr": "",
+        "street": "",
+        "postal_code": "",
+        "city": "",
+        "country": "DE",
+    }
+    for key, val in DEFAULT_KTR.items()
+]
+
+
 CSV_HEADER_LIST = [
     "Konto",
     "Name (Adressattyp Unternehmen)",
@@ -359,7 +402,7 @@ def database_get_entries() -> list[DBData]:
 
 
 def build_csv(file_path: str) -> None:
-    data = database_get_entries()
+    data = database_get_entries() + DEFAULT_KTR_DB_DATA
     # Western-1 encoding
     with open(file_path, "w", encoding="iso-8859-1", newline="") as f:
         f.write(HEADER_LINE + "\n")
