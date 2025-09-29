@@ -227,7 +227,7 @@ def build_csv_data(data: Iterable[DBData]) -> str:
         delimiter=";",
         quotechar='"',
         quoting=csv.QUOTE_NONNUMERIC,
-        lineterminator="\n",
+        lineterminator="\r\n",
     )
     writer.writeheader()
 
@@ -296,7 +296,7 @@ def build_csv(file_path: str) -> None:
     data = database_get_entries() + DEFAULT_KTR_DB_DATA
     # Western-1 encoding
     with open(file_path, "w", encoding="iso-8859-1", newline="") as f:
-        f.write(HEADER_LINE + "\n")
+        f.write(HEADER_LINE + "\r\n")
 
         data_str = build_csv_data(data)
         # get chars not encodable in iso-8859-1
