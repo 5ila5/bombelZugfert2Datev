@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 from typing import Literal, Sequence, TypeAlias, Union
+from uuid import UUID
 
 from lxml import etree  # nosec B410
 
@@ -461,3 +462,5 @@ class LedgerImport(XmlBuilder):
 
 LedgerImportWMetadata = tuple[LedgerImport, tuple[int, int]]
 """LedgerImport [year, month]"""
+
+LedgerImportWMetadataUUID = tuple[LedgerImport, tuple[int, int], UUID]

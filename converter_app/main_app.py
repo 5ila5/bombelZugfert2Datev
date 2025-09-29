@@ -5,6 +5,7 @@ from tkinter import END, Button, Tk, messagebox
 from tkinter.filedialog import askdirectory, askopenfilename, askopenfilenames
 from tkinter.ttk import Treeview
 from typing import cast
+from uuid import uuid4
 
 from pypdf import PdfReader
 
@@ -16,6 +17,7 @@ from datev_creator.ledger_import import (
     Consolidate,
     LedgerImport,
     LedgerImportWMetadata,
+    LedgerImportWMetadataUUID,
 )
 from datev_creator.utils import SOFTWARE_NAME
 from datev_creator.zugfert2ledger_import import (
@@ -128,9 +130,12 @@ class App:
                 )
                 return
 
-        pdf_path_list = cast(
-            dict[Path, tuple[LedgerImport, tuple[int, int]]], self.pdf_path_list
-        )
+        pdf_path_list: dict[Path, LedgerImportWMetadataUUID] = {
+            key: (value[0], value[1], uuid4())
+            for key, value in cast(
+                dict[Path, LedgerImportWMetadata], self.pdf_path_list
+            ).items()
+        }
 
         if len(pdf_path_list) == 0:
             messagebox.showwarning(

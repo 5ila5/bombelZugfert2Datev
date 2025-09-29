@@ -15,15 +15,15 @@ from datev_creator.archive import (
     XsiType,
 )
 from datev_creator.csv_builder import build_csv
-from datev_creator.ledger_import import LedgerImportWMetadata
+from datev_creator.ledger_import import LedgerImportWMetadataUUID
 from datev_creator.utils import SOFTWARE_NAME
 from datev_creator.zip_builder import build_zip
 
 
-def build_archive_and_save(data: Mapping[Path, LedgerImportWMetadata]):
+def build_archive_and_save(data: Mapping[Path, LedgerImportWMetadataUUID]):
     documents: list[ArchiveDocument] = []
 
-    for pdf_file, (_, (year, month)) in data.items():
+    for pdf_file, (_, (year, month), uu_id) in data.items():
         ledger_file_name = pdf_file.with_suffix(".xml").name
         documents.append(
             ArchiveDocument(
@@ -49,7 +49,7 @@ def build_archive_and_save(data: Mapping[Path, LedgerImportWMetadata]):
                     ),
                 ],
                 repository=None,
-                guid=None,
+                guid=uu_id,
                 type=None,
                 process_id=None,
                 description=None,

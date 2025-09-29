@@ -1,6 +1,7 @@
 import enum
 from dataclasses import dataclass
 from typing import Literal, TypeAlias
+from uuid import UUID
 
 from lxml import etree  # nosec B410
 
@@ -230,7 +231,7 @@ class ArchiveDocument(XmlBuilder):
 
     extension: list[ArchiveDocumentExtension]  # 1..50
     repository: ArchiveDocumentRepository | None = None
-    guid: str | None = None
+    guid: UUID | str | None = None
     type: str | None = None
     process_id: str | None = None
     description: str | None = None
@@ -241,7 +242,7 @@ class ArchiveDocument(XmlBuilder):
         attributes: dict[str, str] = {}
 
         if self.guid is not None:
-            attributes["guid"] = self.guid
+            attributes["guid"] = str(self.guid)
         if self.type is not None:
             attributes["type"] = self.type
         if self.process_id is not None:

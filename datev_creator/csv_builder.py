@@ -5,12 +5,13 @@ from enum import IntEnum
 from io import StringIO
 from pathlib import Path
 from typing import Literal, Mapping
+from uuid import UUID
 
 from converter_app.settings import Settings
 from datev_creator.ledger_import import (
     AccountsReceivableLedger,
     LedgerImport,
-    LedgerImportWMetadata,
+    LedgerImportWMetadataUUID,
 )
 
 
@@ -540,7 +541,9 @@ class BuchungsstapelItem:
         return BuchungsstapelItem(*row)
 
     @staticmethod
-    def from_ledger_import(ledger: LedgerImport) -> "BuchungsstapelItem":
+    def from_ledger_import(
+        ledger: LedgerImport, uuid_: UUID | None = None
+    ) -> "BuchungsstapelItem":
         settings = Settings.getinstance()
         createion_date = datetime.strptime(
             ledger.consolidate.consolidated_date, "%Y-%m-%d"
@@ -562,6 +565,10 @@ class BuchungsstapelItem:
         if not konto_nr:
             raise ValueError("not account_no")
 
+        beleglink = ""
+        if uuid_:
+            beleglink = f'BEDI "{uuid_}"'  # BEDI = Unternehmen online # CSV builder does double quotes
+
         return BuchungsstapelItem(
             Umsatz=ledger.consolidate.consolidated_amount.replace(".", ","),
             SollHabenKennzeichen="H",
@@ -582,7 +589,7 @@ class BuchungsstapelItem:
             Geschaeftspartnerbank="",
             Sachverhalt="",
             Zinssperre="",
-            Beleglink="",
+            Beleglink=beleglink,
             Beleginfo_Art_1="",
             Beleginfo_Inhalt_1="",
             Beleginfo_Art_2="",
@@ -712,7 +719,7 @@ class Buchungsstapel:
 
     @staticmethod
     def from_ledger_import_w_metadata(
-        data: list[LedgerImportWMetadata],
+        data: list[LedgerImportWMetadataUUID],
     ) -> "Buchungsstapel":
         oldest = min(data, key=lambda x: ledger_get_date(x[0]))
         newest = max(data, key=lambda x: ledger_get_date(x[0]))
@@ -752,8 +759,8 @@ class Buchungsstapel:
         )
 
         items = [
-            BuchungsstapelItem.from_ledger_import(ledger)
-            for ledger, _ in data
+            BuchungsstapelItem.from_ledger_import(ledger, uuid_)
+            for ledger, _, uuid_ in data
             if isinstance(ledger, LedgerImport)
         ]
         return Buchungsstapel(header=header, items=items)
@@ -769,7 +776,7 @@ class Buchungsstapel:
         return "\n".join(lines)
 
 
-def build_csv(data: Mapping[Path, LedgerImportWMetadata], path: Path) -> None:
+def build_csv(data: Mapping[Path, LedgerImportWMetadataUUID], path: Path) -> None:
     buchungsstapel = Buchungsstapel.from_ledger_import_w_metadata(list(data.values()))
     csv_content = buchungsstapel.to_csv()
     with open(path, "w", encoding="utf-8") as f:
