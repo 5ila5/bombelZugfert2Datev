@@ -4,6 +4,7 @@ from datetime import date, datetime
 from enum import IntEnum
 from io import StringIO
 from pathlib import Path
+from tkinter import messagebox
 from typing import Literal, Mapping
 from uuid import UUID
 
@@ -13,6 +14,10 @@ from datev_creator.ledger_import import (
     LedgerImport,
     LedgerImportWMetadataUUID,
 )
+
+
+class NoAccountNoError(ValueError):
+    pass
 
 
 class Buchungstyp(IntEnum):
@@ -563,7 +568,7 @@ class BuchungsstapelItem:
 
         konto_nr = payable_ledger.base1.base.account_no
         if not konto_nr:
-            raise ValueError("not account_no")
+            raise NoAccountNoError()
 
         beleglink = ""
         if uuid_:
@@ -758,11 +763,21 @@ class Buchungsstapel:
             anwendungsinformation=None,
         )
 
-        items = [
-            BuchungsstapelItem.from_ledger_import(ledger, uuid_)
-            for ledger, _, uuid_ in data
-            if isinstance(ledger, LedgerImport)
-        ]
+        items = []
+        failed_no_account_count = 0
+        for ledger, _, uuid_ in data:
+            if isinstance(ledger, LedgerImport):
+                try:
+                    items.append(BuchungsstapelItem.from_ledger_import(ledger, uuid_))
+                except NoAccountNoError:
+                    failed_no_account_count += 1
+                    print(
+                        f"Skipping ledger with invoice ID {ledger.consolidate.consolidated_invoice_id} due to missing account number."
+                    )
+        if failed_no_account_count > 0:
+            messagebox.showwarning(
+                f"Skipped {failed_no_account_count} ledgers due to missing account numbers."
+            )
         return Buchungsstapel(header=header, items=items)
 
     def to_csv(self) -> str:
