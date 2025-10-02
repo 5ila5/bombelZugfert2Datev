@@ -37,7 +37,7 @@ def build_archive_and_save(data: Mapping[Path, LedgerImportWMetadataUUID]):
                             ),
                             ArchiveDocumentExtensionProperty(
                                 ArchiveDocumentExtensionPropertyKey.INVOICE_FOLDER,
-                                "Kundenrechnungen",
+                                "Ausgangsrechnungen",
                             ),
                         ),
                         filename=ledger_file_name,
