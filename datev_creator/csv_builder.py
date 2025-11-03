@@ -743,7 +743,7 @@ class Buchungsstapel:
             berater_nummer=12191,
             mandant_nummer=45061,
             wj_beginn=date(oldest[1][0], 1, 1),
-            sachkontenlaenge=4,
+            sachkontenlaenge=5,
             datum_von=ledger_get_date(oldest[0]),
             datum_bis=ledger_get_date(newest[0]),
             bezeichnung=f"Fibu {ledger_get_date(newest[0]).month}.{ledger_get_date(newest[0]).year}",
