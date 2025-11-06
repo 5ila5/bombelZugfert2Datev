@@ -794,7 +794,7 @@ class Buchungsstapel:
 def build_csv(data: Mapping[Path, LedgerImportWMetadataUUID], path: Path) -> None:
     buchungsstapel = Buchungsstapel.from_ledger_import_w_metadata(list(data.values()))
     csv_content = buchungsstapel.to_csv()
-    with open(path, "w", encoding="utf-8") as f:
+    with open(path, "w", encoding="ISO-8859-1") as f:
         f.write(csv_content)
 
 
