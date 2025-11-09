@@ -730,7 +730,7 @@ class Buchungsstapel:
         newest = max(data, key=lambda x: ledger_get_date(x[0]))
 
         header = Header(
-            kennzeichen="DTVF",
+            kennzeichen="EXTF",
             version="700",
             format_kategory=FormatCategory.BOOKING_BATCH,
             formatname="Buchungsstapel",
@@ -756,7 +756,7 @@ class Buchungsstapel:
             derivatskennzeichen=None,
             reserviert_2=None,
             reserviert_3=None,
-            sachkontenrahmen="3",
+            sachkontenrahmen=None,
             id_der_branchenloesung=None,
             reserviert_4=None,
             reserviert_5=None,
