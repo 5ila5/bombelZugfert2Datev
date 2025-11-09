@@ -4,6 +4,7 @@ from tkinter.filedialog import asksaveasfilename
 from tkinter.messagebox import askyesno
 from typing import Mapping
 
+from converter_app.settings import Settings
 from datev_creator.archive import (
     Archive,
     ArchiveContent,
@@ -76,6 +77,7 @@ def build_archive_and_save(data: Mapping[Path, LedgerImportWMetadataUUID]):
             title="Save ZIP file",
             defaultextension=".zip",
             filetypes=[("ZIP files", "*.zip")],
+            initialdir=Settings.getinstance().pdf_path,
             initialfile=f"archive_{datetime.now().strftime('%Y%m%d_%H%M%S')}.zip",
         )
     )
