@@ -323,46 +323,46 @@ class BuchungsstapelItem:
     |45|BU 49 Hauptfunktiontyp|^\d$|Bei Verwendung des BU-Schlüssels 49 für „andere Steuersätze“ muss der steuerliche Sachverhalt mitgegeben werden.|
     |46|BU 49 Hauptfunktionsnummer|^\d{0,2}$|siehe #45|
     |47|BU 49 Funktionsergänzung|^\d{0,3}$|siehe #45|
-    |48|Zusatzinformation – Art 1|^(["].{0,20}["])$|Zusatzinformationen, die zu Buchungssätzen erfasst werden können. Diese Zusatzinformationen besitzen den Charakter eines Notizzettels und können frei erfasst werden.Wichtiger Hinweis:Eine Zusatzinformation besteht immer aus den Bestandteilen Informationsart und Informationsinhalt. Wenn Sie die Zusatzinformation nutzen möchten, füllen Sie bitte immer beide Felder.Beispiel:Informationsart: Filiale oder Mengengrößen (qm)Informationsinhalt: buchungsspezifische Inhalte zu den oben genannten Informationsarten.|
-    |49|Zusatzinformation – Inhalt 1|^(["].{0,210}["])$|siehe #48|
-    |50|Zusatzinformation – Art 2|^(["].{0,20}["])$|siehe #48|
-    |51|Zusatzinformation – Inhalt 2|^(["].{0,210}["])$|siehe #48|
-    |52|Zusatzinformation – Art 3|^(["].{0,20}["])$|siehe #48|
-    |53|Zusatzinformation – Inhalt 3|^(["].{0,210}["])$|siehe #48|
-    |54|Zusatzinformation – Art 4|^(["].{0,20}["])$|siehe #48|
-    |55|Zusatzinformation – Inhalt 4|^(["].{0,210}["])$|siehe #48|
-    |56|Zusatzinformation – Art 5|^(["].{0,20}["])$|siehe #48|
-    |57|Zusatzinformation – Inhalt 5|^(["].{0,210}["])$|siehe #48|
-    |58|Zusatzinformation – Art 6|^(["].{0,20}["])$|siehe #48|
-    |59|Zusatzinformation – Inhalt 6|^(["].{0,210}["])$|siehe #48|
-    |60|Zusatzinformation – Art 7|^(["].{0,20}["])$|siehe #48|
-    |61|Zusatzinformation – Inhalt 7|^(["].{0,210}["])$|siehe #48|
-    |62|Zusatzinformation – Art 8|^(["].{0,20}["])$|siehe #48|
-    |63|Zusatzinformation – Inhalt 8|^(["].{0,210}["])$|siehe #48|
-    |64|Zusatzinformation – Art 9|^(["].{0,20}["])$|siehe #48|
-    |65|Zusatzinformation – Inhalt 9|^(["].{0,210}["])$|siehe #48|
-    |66|Zusatzinformation – Art 10|^(["].{0,20}["])$|siehe #48|
-    |67|Zusatzinformation – Inhalt 10|^(["].{0,210}["])$|siehe #48|
-    |68|Zusatzinformation – Art 11|^(["].{0,20}["])$|siehe #48|
-    |69|Zusatzinformation – Inhalt 11|^(["].{0,210}["])$|siehe #48|
-    |70|Zusatzinformation – Art 12|^(["].{0,20}["])$|siehe #48|
-    |71|Zusatzinformation – Inhalt 12|^(["].{0,210}["])$|siehe #48|
-    |72|Zusatzinformation – Art 13|^(["].{0,20}["])$|siehe #48|
-    |73|Zusatzinformation – Inhalt 13|^(["].{0,210}["])$|siehe #48|
-    |74|Zusatzinformation – Art 14|^(["].{0,20}["])$|siehe #48|
-    |75|Zusatzinformation – Inhalt 14|^(["].{0,210}["])$|siehe #48|
-    |76|Zusatzinformation – Art 15|^(["].{0,20}["])$|siehe #48|
-    |77|Zusatzinformation – Inhalt 15|^(["].{0,210}["])$|siehe #48|
-    |78|Zusatzinformation – Art 16|^(["].{0,20}["])$|siehe #48|
-    |79|Zusatzinformation – Inhalt 16|^(["].{0,210}["])$|siehe #48|
-    |80|Zusatzinformation – Art 17|^(["].{0,20}["])$|siehe #48|
-    |81|Zusatzinformation – Inhalt 17|^(["].{0,210}["])$|siehe #48|
-    |82|Zusatzinformation – Art 18|^(["].{0,20}["])$|siehe #48|
-    |83|Zusatzinformation – Inhalt 18|^(["].{0,210}["])$|siehe #48|
-    |84|Zusatzinformation – Art 19|^(["].{0,20}["])$|siehe #48|
-    |85|Zusatzinformation – Inhalt 19|^(["].{0,210}["])$|siehe #48|
-    |86|Zusatzinformation – Art 20|^(["].{0,20}["])$|siehe #48|
-    |87|Zusatzinformation – Inhalt 20|^(["].{0,210}["])$|siehe #48|
+    |48|Zusatzinformation - Art 1|^(["].{0,20}["])$|Zusatzinformationen, die zu Buchungssätzen erfasst werden können. Diese Zusatzinformationen besitzen den Charakter eines Notizzettels und können frei erfasst werden.Wichtiger Hinweis:Eine Zusatzinformation besteht immer aus den Bestandteilen Informationsart und Informationsinhalt. Wenn Sie die Zusatzinformation nutzen möchten, füllen Sie bitte immer beide Felder.Beispiel:Informationsart: Filiale oder Mengengrößen (qm)Informationsinhalt: buchungsspezifische Inhalte zu den oben genannten Informationsarten.|
+    |49|Zusatzinformation - Inhalt 1|^(["].{0,210}["])$|siehe #48|
+    |50|Zusatzinformation - Art 2|^(["].{0,20}["])$|siehe #48|
+    |51|Zusatzinformation - Inhalt 2|^(["].{0,210}["])$|siehe #48|
+    |52|Zusatzinformation - Art 3|^(["].{0,20}["])$|siehe #48|
+    |53|Zusatzinformation - Inhalt 3|^(["].{0,210}["])$|siehe #48|
+    |54|Zusatzinformation - Art 4|^(["].{0,20}["])$|siehe #48|
+    |55|Zusatzinformation - Inhalt 4|^(["].{0,210}["])$|siehe #48|
+    |56|Zusatzinformation - Art 5|^(["].{0,20}["])$|siehe #48|
+    |57|Zusatzinformation - Inhalt 5|^(["].{0,210}["])$|siehe #48|
+    |58|Zusatzinformation - Art 6|^(["].{0,20}["])$|siehe #48|
+    |59|Zusatzinformation - Inhalt 6|^(["].{0,210}["])$|siehe #48|
+    |60|Zusatzinformation - Art 7|^(["].{0,20}["])$|siehe #48|
+    |61|Zusatzinformation - Inhalt 7|^(["].{0,210}["])$|siehe #48|
+    |62|Zusatzinformation - Art 8|^(["].{0,20}["])$|siehe #48|
+    |63|Zusatzinformation - Inhalt 8|^(["].{0,210}["])$|siehe #48|
+    |64|Zusatzinformation - Art 9|^(["].{0,20}["])$|siehe #48|
+    |65|Zusatzinformation - Inhalt 9|^(["].{0,210}["])$|siehe #48|
+    |66|Zusatzinformation - Art 10|^(["].{0,20}["])$|siehe #48|
+    |67|Zusatzinformation - Inhalt 10|^(["].{0,210}["])$|siehe #48|
+    |68|Zusatzinformation - Art 11|^(["].{0,20}["])$|siehe #48|
+    |69|Zusatzinformation - Inhalt 11|^(["].{0,210}["])$|siehe #48|
+    |70|Zusatzinformation - Art 12|^(["].{0,20}["])$|siehe #48|
+    |71|Zusatzinformation - Inhalt 12|^(["].{0,210}["])$|siehe #48|
+    |72|Zusatzinformation - Art 13|^(["].{0,20}["])$|siehe #48|
+    |73|Zusatzinformation - Inhalt 13|^(["].{0,210}["])$|siehe #48|
+    |74|Zusatzinformation - Art 14|^(["].{0,20}["])$|siehe #48|
+    |75|Zusatzinformation - Inhalt 14|^(["].{0,210}["])$|siehe #48|
+    |76|Zusatzinformation - Art 15|^(["].{0,20}["])$|siehe #48|
+    |77|Zusatzinformation - Inhalt 15|^(["].{0,210}["])$|siehe #48|
+    |78|Zusatzinformation - Art 16|^(["].{0,20}["])$|siehe #48|
+    |79|Zusatzinformation - Inhalt 16|^(["].{0,210}["])$|siehe #48|
+    |80|Zusatzinformation - Art 17|^(["].{0,20}["])$|siehe #48|
+    |81|Zusatzinformation - Inhalt 17|^(["].{0,210}["])$|siehe #48|
+    |82|Zusatzinformation - Art 18|^(["].{0,20}["])$|siehe #48|
+    |83|Zusatzinformation - Inhalt 18|^(["].{0,210}["])$|siehe #48|
+    |84|Zusatzinformation - Art 19|^(["].{0,20}["])$|siehe #48|
+    |85|Zusatzinformation - Inhalt 19|^(["].{0,210}["])$|siehe #48|
+    |86|Zusatzinformation - Art 20|^(["].{0,20}["])$|siehe #48|
+    |87|Zusatzinformation - Inhalt 20|^(["].{0,210}["])$|siehe #48|
     |88|Stück|^\d{0,8}$|Wirkt sich nur bei Sachverhalt mit SKR 14 Land- und Forstwirtschaft aus, für andere SKR werden die Felder beim Import / Export überlesen bzw. leer exportiert.|
     |89|Gewicht|^(\d{1,8}[,]\d{2})$|siehe #88|
     |90|Zahlweise|^\d{0,2}$|OPOS-Informationen kommunal1 = Lastschrift2 = Mahnung3 = Zahlung|
@@ -703,7 +703,7 @@ class BuchungsstapelItem:
         )
 
 
-DATA_DESCRIPTION_HEAD = "Umsatz (ohne Soll/Haben-Kz);Soll/Haben-Kennzeichen;WKZ Umsatz;Kurs;Basis-Umsatz;WKZ Basis-Umsatz;Konto;Gegenkonto (ohne BU-Schlüssel);BU-Schlüssel;Belegdatum;Belegfeld 1;Belegfeld 2;Skonto;Buchungstext;Postensperre;Diverse Adressnummer;Geschäftspartnerbank;Sachverhalt;Zinssperre;Beleglink;Beleginfo-Art 1;Beleginfo-Inhalt 1;Beleginfo-Art 2;Beleginfo-Inhalt 2;Beleginfo-Art 3;Beleginfo-Inhalt 3;Beleginfo-Art 4;Beleginfo-Inhalt 4;Beleginfo-Art 5;Beleginfo-Inhalt 5;Beleginfo-Art 6;Beleginfo-Inhalt 6;Beleginfo-Art 7;Beleginfo-Inhalt 7;Beleginfo-Art 8;Beleginfo-Inhalt 8;KOST1-Kostenstelle;KOST2-Kostenstelle;KOST-Menge;EU-Mitgliedstaat u. UStID (Bestimmung);EU-Steuersatz (Bestimmung);Abw. Versteuerungsart;Sachverhalt L+L;Funktionsergänzung L+L;BU 49 Hauptfunktiontyp;BU 49 Hauptfunktionsnummer;BU 49 Funktionsergänzung;Zusatzinformation – Art 1;Zusatzinformation – Inhalt 1;Zusatzinformation – Art 2;Zusatzinformation – Inhalt 2;Zusatzinformation – Art 3;Zusatzinformation – Inhalt 3;Zusatzinformation – Art 4;Zusatzinformation – Inhalt 4;Zusatzinformation – Art 5;Zusatzinformation – Inhalt 5;Zusatzinformation – Art 6;Zusatzinformation – Inhalt 6;Zusatzinformation – Art 7;Zusatzinformation – Inhalt 7;Zusatzinformation – Art 8;Zusatzinformation – Inhalt 8;Zusatzinformation – Art 9;Zusatzinformation – Inhalt 9;Zusatzinformation – Art 10;Zusatzinformation – Inhalt 10;Zusatzinformation – Art 11;Zusatzinformation – Inhalt 11;Zusatzinformation – Art 12;Zusatzinformation – Inhalt 12;Zusatzinformation – Art 13;Zusatzinformation – Inhalt 13;Zusatzinformation – Art 14;Zusatzinformation – Inhalt 14;Zusatzinformation – Art 15;Zusatzinformation – Inhalt 15;Zusatzinformation – Art 16;Zusatzinformation – Inhalt 16;Zusatzinformation – Art 17;Zusatzinformation – Inhalt 17;Zusatzinformation – Art 18;Zusatzinformation – Inhalt 18;Zusatzinformation – Art 19;Zusatzinformation – Inhalt 19;Zusatzinformation – Art 20;Zusatzinformation – Inhalt 20;Stück;Gewicht;Zahlweise;Forderungsart;Veranlagungsjahr;Zugeordnete Fälligkeit;Skontotyp;Auftragsnummer;Buchungstyp;USt-Schlüssel (Anzahlungen);EU-Mitgliedstaat (Anzahlungen);Sachverhalt L+L (Anzahlungen);EU-Steuersatz (Anzahlungen);Erlöskonto (Anzahlungen);Herkunft-Kz;Leerfeld;KOST-Datum;SEPA-Mandatsreferenz;Skontosperre;Gesellschaftername;Beteiligtennummer;Identifikationsnummer;Zeichnernummer;Postensperre bis;Bezeichnung SoBil-Sachverhalt;Kennzeichen SoBil-Buchung;Festschreibung;Leistungsdatum;Datum Zuord. Steuerperiode;Fälligkeit;Generalumkehr;Steuersatz;Land;Abrechnungsreferenz;BVV-Position (Betriebsvermögensvergleich);EU-Mitgliedstaat u. UStID (Ursprung);EU-Steuersatz (Ursprung);Abw. Skontokonto"
+DATA_DESCRIPTION_HEAD = "Umsatz (ohne Soll/Haben-Kz);Soll/Haben-Kennzeichen;WKZ Umsatz;Kurs;Basis-Umsatz;WKZ Basis-Umsatz;Konto;Gegenkonto (ohne BU-Schlüssel);BU-Schlüssel;Belegdatum;Belegfeld 1;Belegfeld 2;Skonto;Buchungstext;Postensperre;Diverse Adressnummer;Geschäftspartnerbank;Sachverhalt;Zinssperre;Beleglink;Beleginfo-Art 1;Beleginfo-Inhalt 1;Beleginfo-Art 2;Beleginfo-Inhalt 2;Beleginfo-Art 3;Beleginfo-Inhalt 3;Beleginfo-Art 4;Beleginfo-Inhalt 4;Beleginfo-Art 5;Beleginfo-Inhalt 5;Beleginfo-Art 6;Beleginfo-Inhalt 6;Beleginfo-Art 7;Beleginfo-Inhalt 7;Beleginfo-Art 8;Beleginfo-Inhalt 8;KOST1-Kostenstelle;KOST2-Kostenstelle;KOST-Menge;EU-Mitgliedstaat u. UStID (Bestimmung);EU-Steuersatz (Bestimmung);Abw. Versteuerungsart;Sachverhalt L+L;Funktionsergänzung L+L;BU 49 Hauptfunktiontyp;BU 49 Hauptfunktionsnummer;BU 49 Funktionsergänzung;Zusatzinformation - Art 1;Zusatzinformation - Inhalt 1;Zusatzinformation - Art 2;Zusatzinformation - Inhalt 2;Zusatzinformation - Art 3;Zusatzinformation - Inhalt 3;Zusatzinformation - Art 4;Zusatzinformation - Inhalt 4;Zusatzinformation - Art 5;Zusatzinformation - Inhalt 5;Zusatzinformation - Art 6;Zusatzinformation - Inhalt 6;Zusatzinformation - Art 7;Zusatzinformation - Inhalt 7;Zusatzinformation - Art 8;Zusatzinformation - Inhalt 8;Zusatzinformation - Art 9;Zusatzinformation - Inhalt 9;Zusatzinformation - Art 10;Zusatzinformation - Inhalt 10;Zusatzinformation - Art 11;Zusatzinformation - Inhalt 11;Zusatzinformation - Art 12;Zusatzinformation - Inhalt 12;Zusatzinformation - Art 13;Zusatzinformation - Inhalt 13;Zusatzinformation - Art 14;Zusatzinformation - Inhalt 14;Zusatzinformation - Art 15;Zusatzinformation - Inhalt 15;Zusatzinformation - Art 16;Zusatzinformation - Inhalt 16;Zusatzinformation - Art 17;Zusatzinformation - Inhalt 17;Zusatzinformation - Art 18;Zusatzinformation - Inhalt 18;Zusatzinformation - Art 19;Zusatzinformation - Inhalt 19;Zusatzinformation - Art 20;Zusatzinformation - Inhalt 20;Stück;Gewicht;Zahlweise;Forderungsart;Veranlagungsjahr;Zugeordnete Fälligkeit;Skontotyp;Auftragsnummer;Buchungstyp;USt-Schlüssel (Anzahlungen);EU-Mitgliedstaat (Anzahlungen);Sachverhalt L+L (Anzahlungen);EU-Steuersatz (Anzahlungen);Erlöskonto (Anzahlungen);Herkunft-Kz;Leerfeld;KOST-Datum;SEPA-Mandatsreferenz;Skontosperre;Gesellschaftername;Beteiligtennummer;Identifikationsnummer;Zeichnernummer;Postensperre bis;Bezeichnung SoBil-Sachverhalt;Kennzeichen SoBil-Buchung;Festschreibung;Leistungsdatum;Datum Zuord. Steuerperiode;Fälligkeit;Generalumkehr;Steuersatz;Land;Abrechnungsreferenz;BVV-Position (Betriebsvermögensvergleich);EU-Mitgliedstaat u. UStID (Ursprung);EU-Steuersatz (Ursprung);Abw. Skontokonto"
 
 
 def ledger_get_date(ledger: LedgerImport) -> date:
