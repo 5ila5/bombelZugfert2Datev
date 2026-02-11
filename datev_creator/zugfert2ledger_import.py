@@ -16,6 +16,7 @@ from datev_creator.ledger_import import (
 from datev_creator.utils import SOFTWARE_NAME
 
 LEDGER_XML_DATA = "Kopie nur zur Verbuchung berechtigt nicht zum Vorsteuerabzug"
+ACCOUNT_NO = "8400"
 
 
 def import_zugfert(xml_path: Path) -> Document:
@@ -33,7 +34,7 @@ def create_ledgger(
     currency_code: str,
     buyer_name: str,
     buyer_city: str | None,
-    account_no_retrieval: Callable[[str | None, str], str | None],
+    bp_account_no_retrieval: Callable[[str | None, str], str | None],
     item_amount: str,
     buyer_id: str | None,
     invoice_id: str,
@@ -55,7 +56,7 @@ def create_ledgger(
                 date=issue_date_time,
                 amount=item_amount,
                 discount_amount=None,
-                account_no=account_no_retrieval(buyer_id, invoice_id),
+                account_no=ACCOUNT_NO,
                 bu_code=bu_code,
                 cost_amount=None,
                 cost_category_id=None,
@@ -89,7 +90,7 @@ def create_ledgger(
             discount_percentage2=None,
             discount_payment_date2=None,
             due_date=due_date,
-            bp_account_no=None,
+            bp_account_no=bp_account_no_retrieval(buyer_id, invoice_id),
             delivery_date=delivery_date,
             order_id=order_id,
         ),
@@ -99,7 +100,7 @@ def create_ledgger(
 
 
 def ledger_from_document(
-    account_no_retrieval: Callable[[str | None, str], str | None],
+    bp_account_no_retrieval: Callable[[str | None, str], str | None],
     document: Document,
     item_amount: str,
     buyer_id: str | None,
@@ -127,7 +128,7 @@ def ledger_from_document(
         buyer_city=str(document.trade.agreement.buyer.address.city_name)
         if document.trade.agreement.buyer.address
         else None,
-        account_no_retrieval=account_no_retrieval,
+        bp_account_no_retrieval=bp_account_no_retrieval,
         item_amount=item_amount,
         buyer_id=buyer_id,
         invoice_id=invoice_id,
@@ -164,14 +165,14 @@ def get_tax_rate(item: LineItem) -> tuple[float, str]:
 
 def retrieve_ledgers(
     document: Document,
-    account_no_retrieval: Callable[[str | None, str], str | None],
+    bp_account_no_retrieval: Callable[[str | None, str], str | None],
     items_as_ledgers: bool = False,
 ) -> list[AccountsReceivableLedger]:
     """Retrieve ledgers from FractureX xml document.
 
     Args:
         document (Document): The drafthorse Document object.
-        account_no_retrieval (Callable[[str | None, str], str | None]): function retrieveing account_no given a [customer_number] and invoice ID.
+        bp_account_no_retrieval (Callable[[str | None, str], str | None]): function retrieveing account_no given a [customer_number] and invoice ID.
         items_as_ledgers (bool, optional): Whether to create one ledger per item (True) or one ledger for the whole invoice (False). Defaults to False.
 
     Raises:
@@ -342,7 +343,7 @@ def retrieve_ledgers(
                     due_date=due_date,
                     delivery_date=delivery_date,
                     order_id=order_id,
-                    account_no_retrieval=account_no_retrieval,
+                    bp_account_no_retrieval=bp_account_no_retrieval,
                     information_text=str(item.product.name)[:120]
                     if item.product and item.product.name
                     else None,
@@ -383,7 +384,7 @@ def retrieve_ledgers(
                 due_date=due_date,
                 delivery_date=delivery_date,
                 order_id=order_id,
-                account_no_retrieval=account_no_retrieval,
+                bp_account_no_retrieval=bp_account_no_retrieval,
                 information_text=f"Ausgangsrechnung {invoice_id}",
                 booking_text=str(document.trade.agreement.buyer.name)[:30],
             )
@@ -392,7 +393,7 @@ def retrieve_ledgers(
 
 def zugfert_to_ledger_import(
     xml_path: Path,
-    account_no_retrieval: Callable[
+    bp_account_no_retrieval: Callable[
         [str | None, str], str | None
     ] = lambda customer_number, invoice_id: None,
 ) -> tuple[LedgerImport, tuple[int, int]]:
@@ -406,7 +407,7 @@ def zugfert_to_ledger_import(
 
     """
     document = import_zugfert(xml_path)
-    ledgers = retrieve_ledgers(document, account_no_retrieval)
+    ledgers = retrieve_ledgers(document, bp_account_no_retrieval)
 
     ledger_import_xml = LedgerImport(
         generator_info=str(document.trade.agreement.seller.name),

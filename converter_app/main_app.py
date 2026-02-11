@@ -82,11 +82,13 @@ class App:
         delete_button = Button(
             self.main_window,
             text="Delete selected",
-            command=lambda: [
-                self.pdf_path_list.pop(Path(item), None)
-                for item in self.tree.selection()
-            ]
-            and self.update_treeview(),
+            command=lambda: (
+                [
+                    self.pdf_path_list.pop(Path(item), None)
+                    for item in self.tree.selection()
+                ]
+                and self.update_treeview()
+            ),
         )
 
         button_inspect = Button(
@@ -282,7 +284,7 @@ class App:
                             currency_code="EUR",
                             buyer_name=buyer_name,
                             buyer_city=buyer_city,
-                            account_no_retrieval=account_no_retrieval,
+                            bp_account_no_retrieval=account_no_retrieval,
                             item_amount=item_amount,
                             buyer_id=buyer_id,
                             invoice_id=invoice_id,
