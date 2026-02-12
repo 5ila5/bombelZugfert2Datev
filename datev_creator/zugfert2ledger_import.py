@@ -6,6 +6,7 @@ from drafthorse.models.party import TaxRegistration
 from drafthorse.models.payment import PaymentTerms
 from drafthorse.models.tradelines import LineItem, LineSettlement, LineSummation
 
+from converter_app import settings
 from datev_creator.ledger_import import (
     AccountsReceivableLedger,
     Base,
@@ -16,7 +17,6 @@ from datev_creator.ledger_import import (
 from datev_creator.utils import SOFTWARE_NAME
 
 LEDGER_XML_DATA = "Kopie nur zur Verbuchung berechtigt nicht zum Vorsteuerabzug"
-ACCOUNT_NO = "8400"
 
 
 def import_zugfert(xml_path: Path) -> Document:
@@ -50,13 +50,14 @@ def create_ledgger(
     information_text: str | None,
     booking_text: str | None = None,
 ):
+    account_no = str(settings.Settings.getinstance().buchungskonto)
     return AccountsReceivableLedger(
         base1=Base1(
             base=Base(
                 date=issue_date_time,
                 amount=item_amount,
                 discount_amount=None,
-                account_no=ACCOUNT_NO,
+                account_no=account_no,
                 bu_code=bu_code,
                 cost_amount=None,
                 cost_category_id=None,

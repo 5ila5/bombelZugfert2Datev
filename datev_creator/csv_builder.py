@@ -8,7 +8,6 @@ from tkinter import messagebox
 from typing import Literal, Mapping
 from uuid import UUID
 
-from converter_app.settings import Settings
 from datev_creator.ledger_import import (
     AccountsReceivableLedger,
     LedgerImport,
@@ -549,7 +548,6 @@ class BuchungsstapelItem:
     def from_ledger_import(
         ledger: LedgerImport, uuid_: UUID | None = None
     ) -> "BuchungsstapelItem":
-        settings = Settings.getinstance()
         createion_date = datetime.strptime(
             ledger.consolidate.consolidated_date, "%Y-%m-%d"
         )
@@ -566,9 +564,15 @@ class BuchungsstapelItem:
         if not booking_text:
             raise ValueError("The ledger must have a booking text")
 
-        konto_nr = payable_ledger.base1.base.account_no
-        if not konto_nr:
+        account_no = payable_ledger.base1.base.account_no
+        if not account_no:
             raise NoAccountNoError()
+
+        bp_account_no = payable_ledger.base1.bp_account_no
+        if not bp_account_no:
+            raise NoAccountNoError(
+                "The ledger must have a business partner account number"
+            )
 
         beleglink = ""
         if uuid_:
@@ -581,8 +585,8 @@ class BuchungsstapelItem:
             Kurs="",
             BasisUmsatz="",
             WKZ_BasisUmsatz="",
-            Konto=konto_nr,
-            Gegenkonto=str(settings.buchungskonto),
+            Konto=bp_account_no,
+            Gegenkonto=account_no,
             BU_Schluessel="",
             Belegdatum=createion_date.strftime("%d%m"),
             Belegfeld_1=rg_nr,
