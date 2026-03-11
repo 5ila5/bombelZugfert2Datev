@@ -1,11 +1,12 @@
 import csv
+from collections.abc import Mapping
 from dataclasses import asdict, dataclass
 from datetime import date, datetime
 from enum import IntEnum
 from io import StringIO
 from pathlib import Path
 from tkinter import messagebox
-from typing import Literal, Mapping
+from typing import Literal
 from uuid import UUID
 
 from datev_creator.ledger_import import (
@@ -61,7 +62,8 @@ class FormatCategory(IntEnum):
     RECURRING_BOOKINGS = 65
 
     def get_name(self):
-        """Returns the name of the category.
+        """
+        Returns the name of the category.
 
         ^["](Buchungsstapel|Wiederkehrende Buchungen|Debitoren/Kreditoren|Kontenbeschriftungen|Zahlungsbedingungen|Diverse Adressen)["]$
         """
@@ -82,7 +84,8 @@ class FormatCategory(IntEnum):
                 raise ValueError(f"Unknown FormatCategory: {self}")
 
     def get_format_version(self):
-        """Returns the format version the category.
+        """
+        Returns the format version the category.
 
         5 = Debitoren-/Kreditoren
         3 = Sachkontenbeschriftungen
@@ -271,7 +274,8 @@ class Header:
 
 @dataclass
 class BuchungsstapelItem:
-    r"""BuchungsstapelItem represents a single line in the CSV file after the headers.
+    r"""
+    BuchungsstapelItem represents a single line in the CSV file after the headers.
 
     |#|Überschrift|Ausdruck|Beschreibung|
     |-|-|-|-|
@@ -585,8 +589,8 @@ class BuchungsstapelItem:
             Kurs="",
             BasisUmsatz="",
             WKZ_BasisUmsatz="",
-            Konto=bp_account_no,
-            Gegenkonto=account_no,
+            Konto=account_no,
+            Gegenkonto=bp_account_no,
             BU_Schluessel="",
             Belegdatum=createion_date.strftime("%d%m"),
             Belegfeld_1=rg_nr,
