@@ -1,8 +1,9 @@
 import csv
+from collections.abc import Iterable
 from datetime import datetime
 from io import StringIO
 from tkinter.filedialog import asksaveasfilename
-from typing import Iterable, TypedDict
+from typing import TypedDict
 
 from converter_app.database_retrieve_account_no import mydb
 
@@ -238,6 +239,9 @@ def build_csv_data(data: Iterable[DBData]) -> str:
         kundennr = entry.get("kundennr", "")
         street = entry.get("street", "")
         postal_code = entry.get("postal_code", "")
+        if postal_code:
+            postal_code = postal_code.zfill(5)
+
         city = entry.get("city", "")
         country = "DE"
 
